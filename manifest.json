@@ -1,0 +1,41 @@
+{
+  "name": "SehatMand Bachay",
+  "short_name": "SehatMand",
+  "description": "Pediatric SAM Diet Planner for Pakistan — WHO-based malnutrition assessment and diet planning tool",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1a7f5a",
+  "theme_color": "#1a7f5a",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["medical", "health", "productivity"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "New Assessment",
+      "short_name": "Assessment",
+      "description": "Start a new child malnutrition assessment",
+      "url": "./index.html#assessment"
+    },
+    {
+      "name": "Diet Planner",
+      "short_name": "Planner",
+      "description": "Open the diet planner",
+      "url": "./index.html#planner"
+    }
+  ]
+}

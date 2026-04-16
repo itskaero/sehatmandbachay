@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1a7f5a" />
+  <meta name="description" content="SehatMand Bachay – Pediatric SAM Diet Planner for Pakistan" />
+  <title>SehatMand Bachay | Pediatric Diet Planner</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="logo.png" type="image/png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Firebase v9 Compat CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+
+  <!-- jsPDF + html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Theme bootstrap: restore saved theme + expose toggleTheme globally -->
+  <script>
+    /* Safe localStorage wrapper — VS Code webview blocks storage access */
+    var _store = {
+      get: function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+      set: function(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+    };
+
+    (function(){ if(_store.get('smb_theme')==='dark')
+      document.documentElement.setAttribute('data-theme','dark'); })();
+
+    function toggleTheme(){
+      var html = document.documentElement;
+      var icon = document.getElementById('theme-icon');
+      var dark = html.getAttribute('data-theme') === 'dark';
+      html.classList.add('theme-transition');
+      setTimeout(function(){ html.classList.remove('theme-transition'); }, 300);
+      if(dark){
+        html.removeAttribute('data-theme');
+        if(icon){ icon.classList.remove('fa-sun');  icon.classList.add('fa-moon'); }
+        _store.set('smb_theme','light');
+      } else {
+        html.setAttribute('data-theme','dark');
+        if(icon){ icon.classList.remove('fa-moon'); icon.classList.add('fa-sun'); }
+        _store.set('smb_theme','dark');
+      }
+    }
+  </script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     SIDEBAR NAVIGATION
+═══════════════════════════════════════════════════ -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <img src="logo.png" alt="SehatMand Bachay" class="logo-img">
+      <div class="logo-text">
+        <span class="logo-name">SehatMand</span>
+        <span class="logo-sub">Bachay</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <p class="nav-label">MAIN</p>
+    <ul class="nav-links">
+      <li class="nav-item active" data-view="dashboard">
+        <i class="fas fa-th-large"></i><span>Dashboard</span>
+        <div class="nav-tooltip">Dashboard</div>
+      </li>
+      <li class="nav-item" data-view="assessment">
+        <i class="fas fa-user-plus"></i><span>Child Assessment</span>
+        <div class="nav-tooltip">Assessment</div>
+      </li>
+      <li class="nav-item" data-view="planner">
+        <i class="fas fa-utensils"></i><span>Diet Planner</span>
+        <div class="nav-tooltip">Diet Planner</div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="nav-section">
+    <p class="nav-label">TOOLS</p>
+    <ul class="nav-links">
+      <li class="nav-item" data-view="f75">
+        <i class="fas fa-flask"></i><span>F-75 / F-100 Module</span>
+        <div class="nav-tooltip">F-75 / F-100</div>
+      </li>
+      <li class="nav-item" data-view="saved">
+        <i class="fas fa-bookmark"></i><span>Saved Diets</span>
+        <div class="nav-tooltip">Saved Diets</div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="nav-section">
+    <p class="nav-label">ADMIN</p>
+    <ul class="nav-links">
+      <li class="nav-item" data-view="fooddb">
+        <i class="fas fa-database"></i><span>Food Database</span>
+        <div class="nav-tooltip">Food Database</div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="firebase-status" id="firebase-status">
+      <span class="status-dot offline" id="firebase-dot"></span>
+      <span id="firebase-label">Offline Mode</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════════ -->
+<main class="main-content" id="main-content">
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="top-bar-center">
+      <h1 class="page-title" id="page-title">Dashboard</h1>
+    </div>
+    <div class="top-bar-right">
+      <button class="btn-icon" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark / light theme" aria-label="Toggle theme">
+        <i class="fas fa-moon" id="theme-icon"></i>
+      </button>
+      <button class="btn-icon lang-toggle" id="lang-toggle" title="Toggle Urdu/English">
+        <i class="fas fa-language"></i><span id="lang-label">اردو</span>
+      </button>
+      <div class="date-display">
+        <i class="fas fa-calendar-alt"></i>
+        <span id="current-date"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════════ VIEW: DASHBOARD ════════════════ -->
+  <div id="view-dashboard" class="view active">
+    <div class="view-intro">
+      <div class="intro-text">
+        <h2>Welcome to SehatMand Bachay</h2>
+        <p>Pediatric Malnutrition Assessment &amp; Diet Planning System — Pakistan</p>
+      </div>
+      <button class="btn btn-primary btn-large" onclick="AppController.navigate('assessment')">
+        <i class="fas fa-plus-circle"></i> New Assessment
+      </button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-icon"><i class="fas fa-child"></i></div>
+        <div class="stat-info"><h3 id="stat-total">0</h3><p>Total Assessments</p></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-info"><h3 id="stat-sam">0</h3><p>SAM Cases</p></div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
+        <div class="stat-info"><h3 id="stat-mam">0</h3><p>MAM Cases</p></div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon"><i class="fas fa-file-medical"></i></div>
+        <div class="stat-info"><h3 id="stat-diets">0</h3><p>Diet Plans</p></div>
+      </div>
+    </div>
+
+    <!-- Dashboard Cards -->
+    <div class="dashboard-grid">
+
+      <!-- WHO Quick Reference -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-info-circle"></i> WHO Classification Reference</h3>
+        </div>
+        <div class="card-body">
+          <table class="ref-table">
+            <thead>
+              <tr><th>Status</th><th>MUAC</th><th>WHZ</th><th>Edema</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge red">SAM</span></td>
+                <td>&lt; 11.5 cm</td><td>&lt; −3 SD</td>
+                <td><span class="badge red-light">Bilateral +</span></td>
+              </tr>
+              <tr>
+                <td><span class="badge yellow">MAM</span></td>
+                <td>11.5 – 12.5 cm</td><td>−3 to −2 SD</td>
+                <td>Absent</td>
+              </tr>
+              <tr>
+                <td><span class="badge green">Normal</span></td>
+                <td>&gt; 12.5 cm</td><td>&gt; −2 SD</td>
+                <td>Absent</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Treatment Phases -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-tasks"></i> SAM Treatment Phases</h3>
+        </div>
+        <div class="card-body phases-list">
+          <div class="phase-item phase-1">
+            <div class="phase-icon">1</div>
+            <div class="phase-info">
+              <strong>Stabilization</strong>
+              <p>F-75 formula • 80–100 kcal/kg/day • Treat complications</p>
+            </div>
+          </div>
+          <div class="phase-item phase-2">
+            <div class="phase-icon">2</div>
+            <div class="phase-info">
+              <strong>Transition</strong>
+              <p>F-100 formula • 100–130 kcal/kg/day • Appetite improving</p>
+            </div>
+          </div>
+          <div class="phase-item phase-3">
+            <div class="phase-icon">3</div>
+            <div class="phase-info">
+              <strong>Rehabilitation</strong>
+              <p>Local foods • 150–220 kcal/kg/day • Rapid weight gain</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Assessments -->
+      <div class="card full-width">
+        <div class="card-header">
+          <h3><i class="fas fa-history"></i> Recent Assessments</h3>
+          <button class="btn btn-sm btn-outline" onclick="AppController.navigate('saved')">View All</button>
+        </div>
+        <div class="card-body">
+          <div id="recent-assessments-list">
+            <div class="empty-state">
+              <i class="fas fa-clipboard-list"></i>
+              <p>No assessments yet — start a new one!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clinical Reminder -->
+      <div class="card full-width">
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle fa-lg"></i>
+          <div>
+            <strong>Clinical Reminder:</strong>
+            <p>Always check for medical complications before starting nutritional rehabilitation. SAM patients with complications require inpatient care. This tool is a clinical aid — not a replacement for professional medical judgment.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /view-dashboard -->
+
+  <!-- ════════════════ VIEW: ASSESSMENT ════════════════ -->
+  <div id="view-assessment" class="view">
+    <div class="view-header-bar">
+      <h2>Child Assessment</h2>
+      <p>Enter child details for WHO-based malnutrition classification</p>
+    </div>
+
+    <div class="assessment-layout">
+
+      <!-- Form Card -->
+      <div class="card assessment-form-card">
+        <div class="card-header">
+          <h3><i class="fas fa-user-edit"></i> Child Details</h3>
+        </div>
+        <div class="card-body">
+          <form id="assessment-form" onsubmit="return false;">
+
+            <div class="form-group">
+              <label for="child-name">Child Name <span class="optional-tag">optional</span></label>
+              <input type="text" id="child-name" class="form-input" placeholder="Enter child name" autocomplete="off" />
+            </div>
+
+            <div class="form-group">
+              <label for="child-age">Age <span class="required-tag">*</span></label>
+              <div class="input-combo">
+                <input type="number" id="child-age" class="form-input" placeholder="e.g. 18" min="0" max="216" required />
+                <select id="age-unit" class="form-select unit-select">
+                  <option value="months">Months</option>
+                  <option value="years">Years</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="child-weight">Weight <span class="required-tag">*</span></label>
+              <div class="input-combo">
+                <input type="number" id="child-weight" class="form-input" placeholder="e.g. 7.5" min="0.5" max="60" step="0.1" required />
+                <span class="unit-label">kg</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="child-muac">MUAC <span class="optional-tag">optional – for 6–59 months</span></label>
+              <div class="input-combo">
+                <input type="number" id="child-muac" class="form-input" placeholder="e.g. 11.2" min="5" max="25" step="0.1" oninput="AssessmentModule.updateMuacIndicator(this.value)" />
+                <span class="unit-label">cm</span>
+              </div>
+              <!-- MUAC Color Band -->
+              <div class="muac-band-wrapper" id="muac-band-wrapper" style="display:none;">
+                <div class="muac-band">
+                  <div class="muac-seg red">SAM<br/>&lt;11.5</div>
+                  <div class="muac-seg yellow">MAM<br/>11.5–12.5</div>
+                  <div class="muac-seg green">Normal<br/>&gt;12.5</div>
+                </div>
+                <div class="muac-pointer-row">
+                  <div class="muac-pointer" id="muac-pointer"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="child-height">Height/Length <span class="optional-tag">optional</span></label>
+              <div class="input-combo">
+                <input type="number" id="child-height" class="form-input" placeholder="e.g. 75" min="30" max="180" step="0.5" />
+                <span class="unit-label">cm</span>
+              </div>
+            </div>
+
+            <!-- Edema -->
+            <div class="form-group">
+              <label>Bilateral Pitting Edema <span class="required-tag">*</span></label>
+              <div class="radio-group">
+                <label class="radio-card radio-no" id="edema-no-card">
+                  <input type="radio" name="edema" value="no" checked />
+                  <i class="fas fa-check-circle"></i>
+                  <span>No Edema</span>
+                </label>
+                <label class="radio-card radio-yes" id="edema-yes-card">
+                  <input type="radio" name="edema" value="yes" />
+                  <i class="fas fa-exclamation-triangle"></i>
+                  <span>Yes – SAM</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Appetite -->
+            <div class="form-group">
+              <label>Appetite <span class="required-tag">*</span></label>
+              <div class="appetite-row" id="appetite-row">
+                <button type="button" class="appetite-btn active" data-value="good">
+                  <i class="fas fa-smile"></i><span>Good</span>
+                </button>
+                <button type="button" class="appetite-btn" data-value="fair">
+                  <i class="fas fa-meh"></i><span>Fair</span>
+                </button>
+                <button type="button" class="appetite-btn" data-value="poor">
+                  <i class="fas fa-frown"></i><span>Poor</span>
+                </button>
+              </div>
+              <small class="form-hint">Appetite test: Offer RUTF — Good ≥50% eaten, Poor &lt;50%</small>
+            </div>
+
+            <!-- Additional Symptoms -->
+            <div class="form-group">
+              <label>Associated Symptoms</label>
+              <div class="checkbox-row">
+                <label class="checkbox-pill"><input type="checkbox" id="sym-diarrhea" /> Diarrhea</label>
+                <label class="checkbox-pill"><input type="checkbox" id="sym-fever" /> Fever</label>
+                <label class="checkbox-pill"><input type="checkbox" id="sym-vomiting" /> Vomiting</label>
+                <label class="checkbox-pill"><input type="checkbox" id="sym-respiratory" /> Resp. Distress</label>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-full" onclick="AssessmentModule.classify()">
+              <i class="fas fa-search-plus"></i> Classify &amp; Calculate Requirements
+            </button>
+          </form>
+        </div>
+      </div><!-- /form card -->
+
+      <!-- Results Panel -->
+      <div class="assessment-results" id="assessment-results" style="display:none;">
+
+        <!-- Classification Badge -->
+        <div class="card result-header-card" id="classification-card">
+          <div class="card-body">
+            <div class="classification-hero">
+              <div class="hero-badge" id="hero-badge"></div>
+              <div class="hero-info">
+                <h3 id="result-title">—</h3>
+                <p id="result-description">—</p>
+                <div class="result-chips" id="result-chips"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Refeeding Syndrome Alert -->
+        <div class="card" id="refeeding-card" style="display:none;">
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle fa-2x"></i>
+            <div>
+              <strong>⚠ Refeeding Syndrome Risk</strong>
+              <p>This severely malnourished child is at high risk. Start at 50–75% of requirement and increase slowly.</p>
+              <ul>
+                <li>Monitor heart rate &amp; respiratory rate every 2–4 hours</li>
+                <li>Check serum phosphate, potassium, magnesium</li>
+                <li>Maximum calorie increase: 25% per day</li>
+                <li>Use F-75 — NOT F-100 in stabilization phase</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Treatment Phase -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-tasks"></i> Treatment Phase</h3>
+          </div>
+          <div class="card-body" id="phase-result-body"></div>
+        </div>
+
+        <!-- Daily Requirements -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-calculator"></i> Daily Nutritional Requirements</h3>
+          </div>
+          <div class="card-body" id="requirements-body"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="AssessmentModule.goToPlanner()">
+            <i class="fas fa-utensils"></i> Create Diet Plan
+          </button>
+          <button class="btn btn-outline" onclick="AssessmentModule.viewF75()">
+            <i class="fas fa-flask"></i> F-75 / F-100
+          </button>
+          <button class="btn btn-outline" onclick="AssessmentModule.saveAssessment()">
+            <i class="fas fa-save"></i> Save Assessment
+          </button>
+        </div>
+
+      </div><!-- /results -->
+    </div><!-- /assessment-layout -->
+  </div><!-- /view-assessment -->
+
+  <!-- ════════════════ VIEW: DIET PLANNER ════════════════ -->
+  <div id="view-planner" class="view">
+    <div class="view-header-bar">
+      <h2>Diet Planner</h2>
+      <p>Build a customized diet plan for the assessed child</p>
+    </div>
+
+    <!-- Active Patient Bar -->
+    <div class="patient-bar" id="planner-patient-bar">
+      <div class="patient-chips">
+        <div class="p-chip"><i class="fas fa-user"></i><span id="planner-name">No patient selected</span></div>
+        <div class="p-chip" id="planner-class-chip"><i class="fas fa-tag"></i><span id="planner-class">—</span></div>
+        <div class="p-chip green"><i class="fas fa-bullseye"></i><span>Target: <strong id="planner-target">—</strong> kcal/day</span></div>
+      </div>
+      <button class="btn btn-sm btn-outline" onclick="AppController.navigate('assessment')">
+        <i class="fas fa-user-plus"></i> Change Patient
+      </button>
+    </div>
+
+    <div class="planner-layout">
+
+      <!-- Left: Food Library -->
+      <div class="planner-left">
+        <div class="card h-full">
+          <div class="card-header">
+            <h3><i class="fas fa-search"></i> Food Library</h3>
+          </div>
+          <div class="card-body">
+            <div class="food-search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" id="food-search" class="form-input" placeholder="Search foods…" oninput="DietPlanner.filterFoods(this.value)" />
+            </div>
+            <div class="cat-tabs" id="cat-tabs">
+              <button class="cat-tab active" data-cat="all">All</button>
+              <button class="cat-tab" data-cat="grain">Grains</button>
+              <button class="cat-tab" data-cat="protein">Protein</button>
+              <button class="cat-tab" data-cat="dairy">Dairy</button>
+              <button class="cat-tab" data-cat="legume">Legumes</button>
+              <button class="cat-tab" data-cat="fat">Fats</button>
+              <button class="cat-tab" data-cat="fruit">Fruits</button>
+              <button class="cat-tab" data-cat="vegetable">Veg</button>
+              <button class="cat-tab" data-cat="mixed">Mixed Dishes</button>
+              <button class="cat-tab" data-cat="therapeutic">Therapeutic</button>
+            </div>
+            <div class="food-grid" id="food-grid">
+              <!-- Populated by DietPlanner.renderFoodLibrary() -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Diet Chart -->
+      <div class="planner-right">
+
+        <!-- Macro Summary -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-chart-bar"></i> Nutrition Summary</h3>
+            <button class="btn btn-sm btn-outline" onclick="DietPlanner.clearAll()">
+              <i class="fas fa-trash"></i> Clear
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="macro-grid">
+              <div class="macro-item">
+                <div class="macro-head"><span>Calories</span><span class="macro-val" id="cal-val">0 kcal</span></div>
+                <div class="prog-wrap"><div class="prog-bar cal-prog" id="cal-prog" style="width:0%"></div></div>
+                <div class="macro-target">Target: <span id="cal-target-lbl">—</span></div>
+              </div>
+              <div class="macro-item">
+                <div class="macro-head"><span>Protein</span><span class="macro-val" id="prot-val">0 g</span></div>
+                <div class="prog-wrap"><div class="prog-bar prot-prog" id="prot-prog" style="width:0%"></div></div>
+                <div class="macro-target">Target: <span id="prot-target-lbl">—</span></div>
+              </div>
+              <div class="macro-item">
+                <div class="macro-head"><span>Fat</span><span class="macro-val" id="fat-val">0 g</span></div>
+                <div class="prog-wrap"><div class="prog-bar fat-prog" id="fat-prog" style="width:0%"></div></div>
+                <div class="macro-target">Target: <span id="fat-target-lbl">—</span></div>
+              </div>
+              <div class="macro-item">
+                <div class="macro-head"><span>Carbohydrates</span><span class="macro-val" id="carb-val">0 g</span></div>
+                <div class="prog-wrap"><div class="prog-bar carb-prog" id="carb-prog" style="width:0%"></div></div>
+              </div>
+            </div>
+            <div id="intake-status-bar"></div>
+          </div>
+        </div>
+
+        <!-- Diet Chart Items -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-list-alt"></i> Diet Chart</h3>
+          </div>
+          <div class="card-body" id="diet-chart-items">
+            <div class="empty-state">
+              <i class="fas fa-utensils fa-2x"></i>
+              <p>Tap food cards to add them to the diet chart</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Smart Suggestions -->
+        <div class="card" id="suggestions-card" style="display:none;">
+          <div class="card-header">
+            <h3><i class="fas fa-lightbulb"></i> Smart Suggestions</h3>
+          </div>
+          <div class="card-body" id="suggestions-body"></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="action-row">
+          <button class="btn btn-primary" onclick="DietPlanner.saveDiet()">
+            <i class="fas fa-save"></i> Save Plan
+          </button>
+          <button class="btn btn-outline" onclick="DietPlanner.exportPDF()">
+            <i class="fas fa-download"></i> Export PDF
+          </button>
+          <button class="btn btn-outline" onclick="DietPlanner.printUrdu()">
+            <i class="fas fa-print"></i> Print (اردو)
+          </button>
+        </div>
+      </div>
+    </div><!-- /planner-layout -->
+  </div><!-- /view-planner -->
+
+  <!-- ════════════════ VIEW: FOOD DATABASE ════════════════ -->
+  <div id="view-fooddb" class="view">
+    <div class="view-header-bar">
+      <h2>Food Database</h2>
+      <p>Manage and add food items to the library</p>
+    </div>
+    <div class="toolbar">
+      <div class="search-box-wrapper">
+        <i class="fas fa-search"></i>
+        <input type="text" id="fooddb-search" class="form-input" placeholder="Search foods…" oninput="FoodDB.search(this.value)" />
+      </div>
+      <button class="btn btn-primary" onclick="FoodDB.openModal()">
+        <i class="fas fa-plus"></i> Add Food Item
+      </button>
+    </div>
+
+    <!-- Local Foods -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-seedling"></i> Local Pakistani Foods (Pre-loaded)</h3>
+        <span class="badge blue" id="local-food-count">0</span>
+      </div>
+      <div class="card-body">
+        <div class="fooddb-grid" id="local-foods-grid"></div>
+      </div>
+    </div>
+
+    <!-- Firebase Custom Foods -->
+    <div class="card" style="margin-top:1.5rem;">
+      <div class="card-header">
+        <h3><i class="fas fa-cloud"></i> Custom Foods (Firebase)</h3>
+        <span class="badge green" id="firebase-food-count">0</span>
+      </div>
+      <div class="card-body">
+        <div class="fooddb-grid" id="firebase-foods-grid">
+          <div class="empty-state">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>No custom foods added yet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /view-fooddb -->
+
+  <!-- ════════════════ VIEW: SAVED DIETS ════════════════ -->
+  <div id="view-saved" class="view">
+    <div class="view-header-bar">
+      <h2>Saved Diets &amp; Assessments</h2>
+      <p>View and manage saved patient records</p>
+    </div>
+    <div class="toolbar">
+      <div class="search-box-wrapper">
+        <i class="fas fa-search"></i>
+        <input type="text" id="saved-search" class="form-input" placeholder="Search by name…" oninput="SavedDiets.search(this.value)" />
+      </div>
+    </div>
+    <div id="saved-list">
+      <div class="empty-state card-empty">
+        <i class="fas fa-folder-open fa-3x"></i>
+        <h3>No saved records</h3>
+        <p>Save assessments and diet plans to view them here</p>
+        <button class="btn btn-primary" onclick="AppController.navigate('assessment')">
+          <i class="fas fa-plus"></i> New Assessment
+        </button>
+      </div>
+    </div>
+  </div><!-- /view-saved -->
+
+  <!-- ════════════════ VIEW: F-75 / F-100 ════════════════ -->
+  <div id="view-f75" class="view">
+    <div class="view-header-bar">
+      <h2>F-75 / F-100 Therapeutic Formulas</h2>
+      <p>WHO standard therapeutic milk formulas for SAM management</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tab-strip" id="f75-tabs">
+      <button class="tab-btn active" data-tab="f75info">F-75 Formula</button>
+      <button class="tab-btn" data-tab="f100info">F-100 Formula</button>
+      <button class="tab-btn" data-tab="localrecipe">Local Recipe</button>
+      <button class="tab-btn" data-tab="volcalc">Volume Calculator</button>
+    </div>
+
+    <!-- F-75 Info -->
+    <div id="f75info" class="tab-panel active">
+      <div class="f75-two-col">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-flask"></i> F-75 — Stabilization Phase</h3>
+            <span class="badge phase-stab">STABILIZATION</span>
+          </div>
+          <div class="card-body">
+            <div class="formula-facts-grid">
+              <div class="ff-item"><div class="ff-val">75 kcal</div><div class="ff-lbl">per 100 ml</div></div>
+              <div class="ff-item"><div class="ff-val">0.9 g</div><div class="ff-lbl">Protein / 100 ml</div></div>
+              <div class="ff-item"><div class="ff-val">2.6 g</div><div class="ff-lbl">Fat / 100 ml</div></div>
+            </div>
+            <h4>WHO Standard Recipe (per 1000 ml)</h4>
+            <table class="recipe-tbl">
+              <thead><tr><th>Ingredient</th><th>Amount</th></tr></thead>
+              <tbody>
+                <tr><td>Dried skimmed milk</td><td>25 g</td></tr>
+                <tr><td>Sugar</td><td>70 g</td></tr>
+                <tr><td>Cereal flour</td><td>35 g</td></tr>
+                <tr><td>Vegetable oil</td><td>30 g</td></tr>
+                <tr><td>Mineral mix</td><td>20 ml</td></tr>
+                <tr><td>Vitamin mix</td><td>140 mg</td></tr>
+                <tr><td>Water to</td><td>1000 ml</td></tr>
+              </tbody>
+            </table>
+            <div class="alert alert-info" style="margin-top:1rem;">
+              <i class="fas fa-clock"></i>
+              <p><strong>Feeding Schedule:</strong> 8 feeds/day (every 3 hours). Starting volume: 80–100 ml/kg/day.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-heartbeat"></i> When to Use F-75</h3></div>
+          <div class="card-body">
+            <div class="checklist">
+              <div class="chk pos"><i class="fas fa-check-circle"></i><span>SAM with acute complications</span></div>
+              <div class="chk pos"><i class="fas fa-check-circle"></i><span>Bilateral pitting edema present</span></div>
+              <div class="chk pos"><i class="fas fa-check-circle"></i><span>Poor appetite (failed appetite test)</span></div>
+              <div class="chk pos"><i class="fas fa-check-circle"></i><span>Diarrhea / infection / hypothermia</span></div>
+              <div class="chk neg"><i class="fas fa-times-circle"></i><span>Do NOT use if appetite is good — use F-100 or RUTF</span></div>
+            </div>
+            <div class="alert alert-danger" style="margin-top:1rem;">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>
+                <strong>Never overfeed in stabilization phase.</strong>
+                <p>Risk of refeeding syndrome, cardiac failure, and death.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /f75info -->
+
+    <!-- F-100 Info -->
+    <div id="f100info" class="tab-panel">
+      <div class="f75-two-col">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-flask"></i> F-100 — Rehabilitation Phase</h3>
+            <span class="badge phase-rehab">REHABILITATION</span>
+          </div>
+          <div class="card-body">
+            <div class="formula-facts-grid">
+              <div class="ff-item"><div class="ff-val">100 kcal</div><div class="ff-lbl">per 100 ml</div></div>
+              <div class="ff-item"><div class="ff-val">2.9 g</div><div class="ff-lbl">Protein / 100 ml</div></div>
+              <div class="ff-item"><div class="ff-val">5.4 g</div><div class="ff-lbl">Fat / 100 ml</div></div>
+            </div>
+            <h4>WHO Standard Recipe (per 1000 ml)</h4>
+            <table class="recipe-tbl">
+              <thead><tr><th>Ingredient</th><th>Amount</th></tr></thead>
+              <tbody>
+                <tr><td>Dried skimmed milk</td><td>80 g</td></tr>
+                <tr><td>Sugar</td><td>50 g</td></tr>
+                <tr><td>Vegetable oil</td><td>60 g</td></tr>
+                <tr><td>Mineral mix</td><td>20 ml</td></tr>
+                <tr><td>Vitamin mix</td><td>140 mg</td></tr>
+                <tr><td>Water to</td><td>1000 ml</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3><i class="fas fa-arrow-right"></i> Transition Steps (F-75 → F-100)</h3></div>
+          <div class="card-body">
+            <div class="step-list">
+              <div class="step-item"><div class="step-num">1</div><div class="step-txt"><strong>Check Criteria</strong><p>Edema subsiding, appetite returning, no acute complications</p></div></div>
+              <div class="step-item"><div class="step-num">2</div><div class="step-txt"><strong>Appetite Test</strong><p>Offer RUTF — child must eat ≥50% of daily portion</p></div></div>
+              <div class="step-item"><div class="step-num">3</div><div class="step-txt"><strong>Gradual Switch</strong><p>Transition over 2–3 days to prevent metabolic complications</p></div></div>
+              <div class="step-item"><div class="step-num">4</div><div class="step-txt"><strong>Weight Target</strong><p>Gain of 10–15 g/kg/day during rehabilitation phase</p></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /f100info -->
+
+    <!-- Local Recipe -->
+    <div id="localrecipe" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-mortar-pestle"></i> Local F-75 Alternative — Pakistan</h3>
+          <span class="badge yellow">Use only when commercial formula unavailable</span>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Use WHO commercial F-75 whenever possible. This local alternative lacks mineral/vitamin mix — supplement separately.</p>
+          </div>
+          <div class="local-recipe-grid">
+            <div>
+              <h4>Ingredients (per 1000 ml) — Adjustable</h4>
+              <div class="recipe-inputs">
+                <div class="recipe-row">
+                  <span>🥛 Full-fat cow's milk</span>
+                  <div class="ri-control">
+                    <input type="number" id="lr-milk" value="300" min="100" max="500" class="recipe-num" oninput="F75Module.updateLocalNutrition()" />
+                    <span>ml</span>
+                  </div>
+                </div>
+                <div class="recipe-row">
+                  <span>🍬 Sugar</span>
+                  <div class="ri-control">
+                    <input type="number" id="lr-sugar" value="70" min="0" max="120" class="recipe-num" oninput="F75Module.updateLocalNutrition()" />
+                    <span>g</span>
+                  </div>
+                </div>
+                <div class="recipe-row">
+                  <span>🌾 Cereal flour (wheat/rice)</span>
+                  <div class="ri-control">
+                    <input type="number" id="lr-cereal" value="35" min="0" max="80" class="recipe-num" oninput="F75Module.updateLocalNutrition()" />
+                    <span>g</span>
+                  </div>
+                </div>
+                <div class="recipe-row">
+                  <span>🫙 Vegetable oil / ghee</span>
+                  <div class="ri-control">
+                    <input type="number" id="lr-oil" value="20" min="0" max="60" class="recipe-num" oninput="F75Module.updateLocalNutrition()" />
+                    <span>ml</span>
+                  </div>
+                </div>
+                <div class="recipe-row water-row">
+                  <span>💧 Water</span>
+                  <span class="water-note">To make up to 1000 ml</span>
+                </div>
+                <div class="recipe-result" id="local-recipe-result">
+                  <!-- Updated by JS -->
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4>Preparation Method</h4>
+              <ol class="prep-steps">
+                <li>Cook cereal flour in a little water to a smooth paste</li>
+                <li>Add milk and oil, mix thoroughly</li>
+                <li>Stir in sugar until dissolved</li>
+                <li>Add boiled water to reach 1000 ml total</li>
+                <li>Cool to body temperature before serving</li>
+                <li>Store in clean covered container; use within 12 hours</li>
+              </ol>
+              <div class="alert alert-danger" style="margin-top:1rem;">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                  <strong>Safety Rules:</strong>
+                  <ul>
+                    <li>Always use clean boiled water</li>
+                    <li>Prepare fresh daily — no reheating</li>
+                    <li>Never add salt or sodium</li>
+                    <li>Add vitamin/mineral supplement if available</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /localrecipe -->
+
+    <!-- Volume Calculator -->
+    <div id="volcalc" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-calculator"></i> F-75 / F-100 Volume Calculator</h3>
+        </div>
+        <div class="card-body">
+          <div class="vol-calc-wrap">
+            <div class="vol-inputs">
+              <div class="form-group">
+                <label>Child Weight (kg)</label>
+                <input type="number" id="vc-weight" class="form-input" placeholder="e.g. 7.5" min="0.5" max="40" step="0.1" oninput="F75Module.calcVolume()" />
+              </div>
+              <div class="form-group">
+                <label>Formula Type</label>
+                <select id="vc-formula" class="form-select" onchange="F75Module.calcVolume()">
+                  <option value="f75">F-75 (Stabilization)</option>
+                  <option value="f100">F-100 (Rehabilitation)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Target Energy</label>
+                <select id="vc-phase" class="form-select" onchange="F75Module.calcVolume()">
+                  <option value="80">Starting: 80 kcal/kg/day</option>
+                  <option value="100">Step 1: 100 kcal/kg/day</option>
+                  <option value="130">Step 2: 130 kcal/kg/day</option>
+                  <option value="200">Rehabilitation: 200 kcal/kg/day</option>
+                </select>
+              </div>
+            </div>
+            <div class="vol-results" id="vol-results">
+              <div class="empty-state">
+                <i class="fas fa-calculator fa-2x"></i>
+                <p>Enter weight to calculate</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /volcalc -->
+
+  </div><!-- /view-f75 -->
+
+</main><!-- /main-content -->
+
+<!-- ═══════════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════════ -->
+
+<!-- Add / Edit Food Modal -->
+<div class="modal-overlay" id="modal-food" style="display:none;" onclick="FoodDB.overlayClose(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-food-title">Add Food Item</h3>
+      <button class="modal-close" onclick="FoodDB.closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="food-form" onsubmit="return false;">
+        <input type="hidden" id="food-edit-id" />
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Food Name (English) <span class="required-tag">*</span></label>
+            <input type="text" id="food-name" class="form-input" placeholder="e.g. Khichri" required />
+          </div>
+          <div class="form-group">
+            <label>اردو نام</label>
+            <input type="text" id="food-name-urdu" class="form-input urdu-input" placeholder="e.g. کھچڑی" dir="rtl" />
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="food-category" class="form-select">
+              <option value="grain">Grain / Cereal</option>
+              <option value="protein">Protein</option>
+              <option value="dairy">Dairy</option>
+              <option value="legume">Legume</option>
+              <option value="fat">Fat / Oil</option>
+              <option value="fruit">Fruit</option>
+              <option value="vegetable">Vegetable</option>
+              <option value="mixed">Mixed Dish</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cost Category</label>
+            <select id="food-cost" class="form-select">
+              <option value="low">Low Cost</option>
+              <option value="medium">Medium Cost</option>
+              <option value="high">High Cost</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Emoji Icon</label>
+            <input type="text" id="food-emoji" class="form-input" placeholder="🍲" maxlength="4" />
+          </div>
+        </div>
+        <div class="form-section-label">Nutrition Values (per 100g)</div>
+        <div class="form-row-4">
+          <div class="form-group">
+            <label>Calories (kcal)</label>
+            <input type="number" id="food-cal" class="form-input" placeholder="0" min="0" step="1" required />
+          </div>
+          <div class="form-group">
+            <label>Protein (g)</label>
+            <input type="number" id="food-prot" class="form-input" placeholder="0" min="0" step="0.1" required />
+          </div>
+          <div class="form-group">
+            <label>Carbs (g)</label>
+            <input type="number" id="food-carb" class="form-input" placeholder="0" min="0" step="0.1" required />
+          </div>
+          <div class="form-group">
+            <label>Fat (g)</label>
+            <input type="number" id="food-fat" class="form-input" placeholder="0" min="0" step="0.1" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Clinical Tips / Notes</label>
+          <textarea id="food-tips" class="form-input" rows="2" placeholder="e.g. Good protein source — combine with roti"></textarea>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="FoodDB.closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="FoodDB.saveFood()"><i class="fas fa-save"></i> Save Food</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add to Diet Modal -->
+<div class="modal-overlay" id="modal-add-diet" style="display:none;" onclick="DietPlanner.closeAddModal(event)">
+  <div class="modal modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Add to Diet Chart</h3>
+      <button class="modal-close" onclick="DietPlanner.closeAddModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="add-diet-preview" class="food-add-preview"></div>
+      <div class="form-group">
+        <label>Amount (grams)</label>
+        <input type="number" id="diet-amount" class="form-input" value="100" min="5" max="1000" step="5" oninput="DietPlanner.previewNutrition()" />
+        <div class="quick-amounts">
+          <button type="button" onclick="DietPlanner.setAmount(50)">50g</button>
+          <button type="button" onclick="DietPlanner.setAmount(100)">100g</button>
+          <button type="button" onclick="DietPlanner.setAmount(150)">150g</button>
+          <button type="button" onclick="DietPlanner.setAmount(200)">200g</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Meal Time</label>
+        <select id="diet-meal" class="form-select">
+          <option value="Morning (7am)">Morning (7am)</option>
+          <option value="Mid-Morning (10am)">Mid-Morning (10am)</option>
+          <option value="Lunch (1pm)">Lunch (1pm)</option>
+          <option value="Afternoon (4pm)">Afternoon (4pm)</option>
+          <option value="Dinner (7pm)">Dinner (7pm)</option>
+          <option value="Night Feed (10pm)">Night Feed (10pm)</option>
+        </select>
+      </div>
+      <div class="nutrition-preview" id="diet-nutrition-preview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="DietPlanner.closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="DietPlanner.confirmAdd()"><i class="fas fa-plus"></i> Add to Diet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TOAST NOTIFICATIONS
+═══════════════════════════════════════════════════ -->
+<div id="toast-container" class="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     PRINT / PDF SECTION (hidden from screen)
+═══════════════════════════════════════════════════ -->
+<div id="print-section" class="print-only">
+  <!-- Populated by PDFExport module -->
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SCRIPTS (order matters)
+═══════════════════════════════════════════════════ -->
+<script src="js/firebase-config.js"></script>
+<script src="js/nutrition.js"></script>
+<script src="js/food-database.js"></script>
+<script src="js/suggestions.js"></script>
+<script src="js/diet-planner.js"></script>
+<script src="js/pdf-export.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

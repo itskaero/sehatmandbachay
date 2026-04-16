@@ -1,0 +1,396 @@
+/* ═══════════════════════════════════════════════════════════════
+   food-database.js
+   Local Pakistani food library + Firebase CRUD operations.
+   All nutrient values per 100g from USDA / Pakistan Food Composition
+   Table (2019) and WHO SAM food guides.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Pre-loaded Local Pakistani Foods ──────────────────────── */
+
+const LOCAL_FOODS = [
+  {
+    id: "pk_001", name: "Roti (Chapati, Whole Wheat)", nameUrdu: "روٹی",
+    emoji: "🫓", category: "grain", cost: "low",
+    per100g: { calories: 297, protein: 9.3, carbs: 60.8, fat: 3.5 },
+    tips: "Mash with milk or daal for young children. Whole wheat preferred.",
+    isLocal: true
+  },
+  {
+    id: "pk_002", name: "Rice (Cooked)", nameUrdu: "پکے چاول",
+    emoji: "🍚", category: "grain", cost: "low",
+    per100g: { calories: 130, protein: 2.7, carbs: 28.2, fat: 0.3 },
+    tips: "Well-cooked soft rice is easy to digest. Mix with daal for protein.",
+    isLocal: true
+  },
+  {
+    id: "pk_003", name: "Daal (Lentils, Cooked)", nameUrdu: "دال",
+    emoji: "🍲", category: "legume", cost: "low",
+    per100g: { calories: 116, protein: 9.0, carbs: 20.1, fat: 0.4 },
+    tips: "Excellent affordable protein. Combine with roti for complete amino acid profile.",
+    isLocal: true
+  },
+  {
+    id: "pk_004", name: "Whole Milk (Full-fat)", nameUrdu: "دودھ",
+    emoji: "🥛", category: "dairy", cost: "medium",
+    per100g: { calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3 },
+    tips: "Full-fat cow's milk preferred for malnourished children. Key ingredient in local F-75.",
+    isLocal: true
+  },
+  {
+    id: "pk_005", name: "Yogurt / Dahi (Full-fat)", nameUrdu: "دہی",
+    emoji: "🥣", category: "dairy", cost: "low",
+    per100g: { calories: 61, protein: 3.5, carbs: 4.7, fat: 3.3 },
+    tips: "Probiotics help gut recovery. Excellent calcium and protein source.",
+    isLocal: true
+  },
+  {
+    id: "pk_006", name: "Egg (Boiled, ~50g each)", nameUrdu: "انڈہ",
+    emoji: "🥚", category: "protein", cost: "low",
+    per100g: { calories: 155, protein: 13.0, carbs: 1.1, fat: 11.0 },
+    tips: "Complete high-quality protein. One egg ≈ 50g ≈ 78 kcal, 6.5g protein.",
+    isLocal: true
+  },
+  {
+    id: "pk_007", name: "Banana", nameUrdu: "کیلا",
+    emoji: "🍌", category: "fruit", cost: "low",
+    per100g: { calories: 89, protein: 1.1, carbs: 22.8, fat: 0.3 },
+    tips: "Easy energy source. Rich in potassium. Good for children with diarrhea recovery.",
+    isLocal: true
+  },
+  {
+    id: "pk_008", name: "Potato (Boiled / Mashed)", nameUrdu: "آلو",
+    emoji: "🥔", category: "vegetable", cost: "low",
+    per100g: { calories: 87, protein: 1.9, carbs: 20.1, fat: 0.1 },
+    tips: "Mash well for young children. Add oil/ghee to increase calorie density.",
+    isLocal: true
+  },
+  {
+    id: "pk_009", name: "Oil / Ghee (Vegetable/Clarified)", nameUrdu: "تیل / گھی",
+    emoji: "🫙", category: "fat", cost: "medium",
+    per100g: { calories: 900, protein: 0.0, carbs: 0.0, fat: 100.0 },
+    tips: "Add 1–2 tsp to any food to significantly boost calorie density. Critical for SAM.",
+    isLocal: true
+  },
+  {
+    id: "pk_010", name: "Khichri (Rice + Daal)", nameUrdu: "کھچڑی",
+    emoji: "🍳", category: "mixed", cost: "low",
+    per100g: { calories: 110, protein: 5.0, carbs: 20.0, fat: 2.5 },
+    tips: "Traditional Pakistani recovery food. Easily digestible. Add ghee to increase calories.",
+    isLocal: true
+  },
+  {
+    id: "pk_011", name: "Sugar (White)", nameUrdu: "چینی",
+    emoji: "🍬", category: "carb", cost: "low",
+    per100g: { calories: 387, protein: 0.0, carbs: 100.0, fat: 0.0 },
+    tips: "Use to increase energy density of formula. Essential in F-75/F-100 preparation.",
+    isLocal: true
+  },
+  {
+    id: "pk_012", name: "Chicken (Cooked, Boneless)", nameUrdu: "مرغی",
+    emoji: "🍗", category: "protein", cost: "medium",
+    per100g: { calories: 165, protein: 31.0, carbs: 0.0, fat: 3.6 },
+    tips: "Excellent high-protein food for rehabilitation phase. Cook until tender, shred finely.",
+    isLocal: true
+  },
+  {
+    id: "pk_013", name: "Wheat Flour (Atta)", nameUrdu: "آٹا",
+    emoji: "🌾", category: "grain", cost: "low",
+    per100g: { calories: 364, protein: 12.0, carbs: 77.0, fat: 1.5 },
+    tips: "Used in local F-75/F-100 recipes as cereal component. Cook as porridge.",
+    isLocal: true
+  },
+  {
+    id: "pk_014", name: "Halwa (Sooji / Semolina)", nameUrdu: "حلوہ",
+    emoji: "🟡", category: "grain", cost: "low",
+    per100g: { calories: 180, protein: 3.0, carbs: 30.0, fat: 6.5 },
+    tips: "Energy-dense traditional food. Add ghee and milk for higher calorie version.",
+    isLocal: true
+  },
+  {
+    id: "pk_015", name: "Peanuts / Groundnuts", nameUrdu: "مونگ پھلی",
+    emoji: "🥜", category: "protein", cost: "low",
+    per100g: { calories: 567, protein: 25.8, carbs: 16.1, fat: 49.2 },
+    tips: "Base of RUTF. Grind to paste (peanut butter) for young children. High energy + protein.",
+    isLocal: true
+  },
+  {
+    id: "pk_016", name: "Dates (Khajoor)", nameUrdu: "کھجور",
+    emoji: "🫘", category: "fruit", cost: "low",
+    per100g: { calories: 277, protein: 1.8, carbs: 75.0, fat: 0.2 },
+    tips: "Very energy-dense. Good iron source. Soak and mash for easy consumption.",
+    isLocal: true
+  },
+  {
+    id: "pk_017", name: "Spinach (Cooked)", nameUrdu: "پالک",
+    emoji: "🥬", category: "vegetable", cost: "low",
+    per100g: { calories: 23, protein: 3.0, carbs: 3.6, fat: 0.3 },
+    tips: "Rich in iron and folate. Important for anemia recovery. Mix with daal.",
+    isLocal: true
+  },
+  {
+    id: "pk_018", name: "Chickpeas / Chanay (Cooked)", nameUrdu: "چنے",
+    emoji: "🫛", category: "legume", cost: "low",
+    per100g: { calories: 164, protein: 8.9, carbs: 27.4, fat: 2.6 },
+    tips: "High protein legume. Mash for young children or blend into thick paste.",
+    isLocal: true
+  }
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   FoodDB Module — CRUD + Rendering
+═══════════════════════════════════════════════════════════════ */
+
+const FoodDB = (() => {
+  let currentEditId   = null;
+  let firebaseFoods   = [];
+  let searchTerm      = "";
+
+  /* ── Initialise ───────────────────────────────────────────── */
+
+  async function init() {
+    await loadFirebaseFoods();
+    renderLocalFoods();
+    renderFirebaseFoods();
+    updateCounts();
+  }
+
+  /* ── Load Custom Foods from Firebase/localStorage ─────────── */
+
+  async function loadFirebaseFoods() {
+    try {
+      firebaseFoods = await dbGetAll("foods");
+    } catch {
+      firebaseFoods = [];
+    }
+  }
+
+  /* ── Get All Foods (local + firebase) ─────────────────────── */
+
+  function getAllFoods() {
+    return [...LOCAL_FOODS, ...firebaseFoods];
+  }
+
+  function getFoodById(id) {
+    return getAllFoods().find(f => f.id === id) || null;
+  }
+
+  /* ── Render Local Foods Grid ──────────────────────────────── */
+
+  function renderLocalFoods(filter = "") {
+    const grid = document.getElementById("local-foods-grid");
+    if (!grid) return;
+    const foods = LOCAL_FOODS.filter(f =>
+      f.name.toLowerCase().includes(filter) ||
+      (f.nameUrdu || "").includes(filter)
+    );
+    grid.innerHTML = foods.map(f => buildFoodCard(f, false)).join("") || emptyState("No matching foods");
+  }
+
+  /* ── Render Firebase Foods Grid ───────────────────────────── */
+
+  function renderFirebaseFoods(filter = "") {
+    const grid = document.getElementById("firebase-foods-grid");
+    if (!grid) return;
+    const foods = firebaseFoods.filter(f =>
+      f.name.toLowerCase().includes(filter) ||
+      (f.nameUrdu || "").includes(filter)
+    );
+    if (!foods.length) {
+      grid.innerHTML = `<div class="empty-state"><i class="fas fa-cloud-upload-alt"></i><p>No custom foods added yet</p></div>`;
+      return;
+    }
+    grid.innerHTML = foods.map(f => buildFoodCard(f, true)).join("");
+  }
+
+  /* ── Build Food Card HTML ─────────────────────────────────── */
+
+  function buildFoodCard(food, editable) {
+    const costClass = food.cost === "medium" ? "medium" : "";
+    const costLabel = food.cost === "low" ? "Low Cost" : food.cost === "medium" ? "Mid Cost" : "High";
+    return `
+      <div class="fdb-card" id="fdb-${food.id}">
+        ${food.isLocal ? '<div class="fdb-local-tag">PRE-LOADED</div>' : ""}
+        <div class="fdb-top">
+          <span class="fdb-emoji">${food.emoji || "🍽️"}</span>
+          <div>
+            <div class="fdb-name">${escHtml(food.name)}</div>
+            ${food.nameUrdu ? `<div class="fdb-urdu">${food.nameUrdu}</div>` : ""}
+          </div>
+        </div>
+        <div class="fdb-macros">
+          <span class="fdb-macro kcal">⚡ ${food.per100g.calories} kcal</span>
+          <span class="fdb-macro">🥩 ${food.per100g.protein}g</span>
+          <span class="fdb-macro">🧈 ${food.per100g.fat}g fat</span>
+          <span class="fdb-macro ${costClass}">${costLabel}</span>
+        </div>
+        ${food.tips ? `<p style="font-size:.75rem;color:var(--text-2);line-height:1.4;">${escHtml(food.tips)}</p>` : ""}
+        <div class="fdb-actions">
+          ${editable ? `
+            <button class="btn btn-sm btn-outline" onclick="FoodDB.editFood('${food.id}')"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn btn-sm btn-danger"  onclick="FoodDB.deleteFood('${food.id}')"><i class="fas fa-trash"></i></button>
+          ` : `
+            <button class="btn btn-sm btn-outline" style="width:100%" onclick="DietPlanner.openAddModal('${food.id}')">
+              <i class="fas fa-plus"></i> Add to Diet
+            </button>
+          `}
+        </div>
+      </div>`;
+  }
+
+  /* ── Search ───────────────────────────────────────────────── */
+
+  function search(term) {
+    searchTerm = term.toLowerCase().trim();
+    renderLocalFoods(searchTerm);
+    renderFirebaseFoods(searchTerm);
+  }
+
+  /* ── Modal: Add/Edit ──────────────────────────────────────── */
+
+  function openModal(foodId = null) {
+    currentEditId = foodId;
+    const modal = document.getElementById("modal-food");
+    const title = document.getElementById("modal-food-title");
+    clearForm();
+    if (foodId) {
+      title.textContent = "Edit Food Item";
+      const food = getFoodById(foodId);
+      if (food) populateForm(food);
+    } else {
+      title.textContent = "Add Food Item";
+    }
+    modal.style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("modal-food").style.display = "none";
+    clearForm();
+    currentEditId = null;
+  }
+
+  function overlayClose(e) {
+    if (e.target === document.getElementById("modal-food")) closeModal();
+  }
+
+  function clearForm() {
+    document.getElementById("food-edit-id").value    = "";
+    document.getElementById("food-name").value        = "";
+    document.getElementById("food-name-urdu").value   = "";
+    document.getElementById("food-category").value    = "grain";
+    document.getElementById("food-cost").value        = "low";
+    document.getElementById("food-emoji").value       = "";
+    document.getElementById("food-cal").value         = "";
+    document.getElementById("food-prot").value        = "";
+    document.getElementById("food-carb").value        = "";
+    document.getElementById("food-fat").value         = "";
+    document.getElementById("food-tips").value        = "";
+  }
+
+  function populateForm(food) {
+    document.getElementById("food-edit-id").value    = food.id;
+    document.getElementById("food-name").value        = food.name;
+    document.getElementById("food-name-urdu").value   = food.nameUrdu || "";
+    document.getElementById("food-category").value    = food.category || "grain";
+    document.getElementById("food-cost").value        = food.cost || "low";
+    document.getElementById("food-emoji").value       = food.emoji || "";
+    document.getElementById("food-cal").value         = food.per100g.calories;
+    document.getElementById("food-prot").value        = food.per100g.protein;
+    document.getElementById("food-carb").value        = food.per100g.carbs;
+    document.getElementById("food-fat").value         = food.per100g.fat;
+    document.getElementById("food-tips").value        = food.tips || "";
+  }
+
+  /* ── Save Food ─────────────────────────────────────────────── */
+
+  async function saveFood() {
+    const name = document.getElementById("food-name").value.trim();
+    if (!name) { AppController.showToast("Food name is required", "error"); return; }
+
+    const cal  = parseFloat(document.getElementById("food-cal").value);
+    const prot = parseFloat(document.getElementById("food-prot").value);
+    const carb = parseFloat(document.getElementById("food-carb").value);
+    const fat  = parseFloat(document.getElementById("food-fat").value);
+
+    if (isNaN(cal) || isNaN(prot) || isNaN(carb) || isNaN(fat)) {
+      AppController.showToast("All nutrition values must be numbers", "error");
+      return;
+    }
+
+    const food = {
+      name,
+      nameUrdu:  document.getElementById("food-name-urdu").value.trim(),
+      category:  document.getElementById("food-category").value,
+      cost:      document.getElementById("food-cost").value,
+      emoji:     document.getElementById("food-emoji").value.trim() || "🍽️",
+      per100g:   { calories: cal, protein: prot, carbs: carb, fat },
+      tips:      document.getElementById("food-tips").value.trim(),
+      isLocal:   false
+    };
+
+    try {
+      const editId = document.getElementById("food-edit-id").value;
+      if (editId) {
+        await dbUpdate("foods", editId, food);
+        const idx = firebaseFoods.findIndex(f => f.id === editId);
+        if (idx !== -1) firebaseFoods[idx] = { ...firebaseFoods[idx], ...food };
+        AppController.showToast("Food item updated", "success");
+      } else {
+        const newId = await dbSave("foods", food);
+        firebaseFoods.unshift({ id: newId, ...food, createdAt: new Date().toISOString() });
+        AppController.showToast("Food item added", "success");
+      }
+      renderFirebaseFoods(searchTerm);
+      DietPlanner.refreshFoodLibrary();
+      updateCounts();
+      closeModal();
+    } catch (err) {
+      AppController.showToast("Error saving food: " + err.message, "error");
+    }
+  }
+
+  /* ── Edit Food ─────────────────────────────────────────────── */
+
+  function editFood(id) {
+    const food = firebaseFoods.find(f => f.id === id);
+    if (!food) return;
+    openModal(id);
+  }
+
+  /* ── Delete Food ───────────────────────────────────────────── */
+
+  async function deleteFood(id) {
+    if (!confirm("Delete this food item? This cannot be undone.")) return;
+    try {
+      await dbDelete("foods", id);
+      firebaseFoods = firebaseFoods.filter(f => f.id !== id);
+      renderFirebaseFoods(searchTerm);
+      DietPlanner.refreshFoodLibrary();
+      updateCounts();
+      AppController.showToast("Food item deleted", "info");
+    } catch (err) {
+      AppController.showToast("Error deleting: " + err.message, "error");
+    }
+  }
+
+  /* ── Update Counts ─────────────────────────────────────────── */
+
+  function updateCounts() {
+    const lc = document.getElementById("local-food-count");
+    const fc = document.getElementById("firebase-food-count");
+    if (lc) lc.textContent = LOCAL_FOODS.length + " items";
+    if (fc) fc.textContent = firebaseFoods.length + " items";
+  }
+
+  /* ── Helpers ───────────────────────────────────────────────── */
+
+  function emptyState(msg) {
+    return `<div class="empty-state"><i class="fas fa-search"></i><p>${msg}</p></div>`;
+  }
+
+  /* ── Public API ────────────────────────────────────────────── */
+  return {
+    init, getAllFoods, getFoodById, search,
+    openModal, closeModal, overlayClose, saveFood, editFood, deleteFood
+  };
+
+})();
