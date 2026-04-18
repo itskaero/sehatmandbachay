@@ -62,6 +62,13 @@
         _store.set('smb_theme','dark');
       }
     }
+
+    function setSex(s) {
+      document.getElementById('child-sex').value = s;
+      document.querySelectorAll('.sex-btn').forEach(function(b){ b.classList.remove('active'); });
+      var btn = document.getElementById('sex-btn-' + s);
+      if(btn) btn.classList.add('active');
+    }
   </script>
 </head>
 <body>
@@ -81,51 +88,66 @@
   </div>
 
   <div class="nav-section">
-    <p class="nav-label">MAIN</p>
+    <p class="nav-label" data-i18n="nav.section.main">MAIN</p>
     <ul class="nav-links">
       <li class="nav-item active" data-view="dashboard">
-        <i class="fas fa-th-large"></i><span>Dashboard</span>
-        <div class="nav-tooltip">Dashboard</div>
+        <i class="fas fa-th-large"></i><span data-i18n="nav.dashboard">Dashboard</span>
+        <div class="nav-tooltip" data-i18n="nav.dashboard">Dashboard</div>
       </li>
       <li class="nav-item" data-view="assessment">
-        <i class="fas fa-user-plus"></i><span>Child Assessment</span>
-        <div class="nav-tooltip">Assessment</div>
+        <i class="fas fa-user-plus"></i><span data-i18n="nav.assessment">Child Assessment</span>
+        <div class="nav-tooltip" data-i18n="nav.assessment">Assessment</div>
       </li>
       <li class="nav-item" data-view="planner">
-        <i class="fas fa-utensils"></i><span>Diet Planner</span>
-        <div class="nav-tooltip">Diet Planner</div>
+        <i class="fas fa-utensils"></i><span data-i18n="nav.planner">Diet Planner</span>
+        <div class="nav-tooltip" data-i18n="nav.planner">Diet Planner</div>
       </li>
     </ul>
   </div>
 
   <div class="nav-section">
-    <p class="nav-label">TOOLS</p>
+    <p class="nav-label" data-i18n="nav.section.tools">TOOLS</p>
     <ul class="nav-links">
       <li class="nav-item" data-view="f75">
-        <i class="fas fa-flask"></i><span>F-75 / F-100 Module</span>
-        <div class="nav-tooltip">F-75 / F-100</div>
+        <i class="fas fa-flask"></i><span data-i18n="nav.f75">F-75 / F-100 Module</span>
+        <div class="nav-tooltip" data-i18n="nav.f75">F-75 / F-100</div>
       </li>
       <li class="nav-item" data-view="saved">
-        <i class="fas fa-bookmark"></i><span>Saved Diets</span>
-        <div class="nav-tooltip">Saved Diets</div>
+        <i class="fas fa-users"></i><span data-i18n="nav.saved">Patient Records</span>
+        <div class="nav-tooltip" data-i18n="nav.saved">Patient Records</div>
       </li>
     </ul>
   </div>
 
   <div class="nav-section">
-    <p class="nav-label">ADMIN</p>
+    <p class="nav-label" data-i18n="nav.section.admin">ADMIN</p>
     <ul class="nav-links">
       <li class="nav-item" data-view="fooddb">
-        <i class="fas fa-database"></i><span>Food Database</span>
-        <div class="nav-tooltip">Food Database</div>
+        <i class="fas fa-database"></i><span data-i18n="nav.fooddb">Food Database</span>
+        <div class="nav-tooltip" data-i18n="nav.fooddb">Food Database</div>
       </li>
     </ul>
   </div>
 
   <div class="sidebar-footer">
-    <div class="firebase-status" id="firebase-status">
+    <div class="hospital-footer">
+      <div class="hosp-info">
+        <i class="fas fa-hospital-alt"></i>
+        <span id="hosp-name-display" data-i18n-fallback="sidebar.noHospital">No Hospital Set</span>
+      </div>
+      <span class="auth-badge view-only" id="auth-badge" data-i18n="sidebar.authBadge.view">View Only</span>
+    </div>
+    <div class="hosp-actions">
+      <button class="btn btn-sm btn-outline w-full" id="pin-btn" onclick="HospitalAuth.openPinModal()">
+        <i class="fas fa-key"></i><span data-i18n="btn.enterPin">Enter PIN</span>
+      </button>
+      <button class="btn btn-sm btn-outline w-full" onclick="HospitalAuth.openSetupModal()" style="margin-top:4px;">
+        <i class="fas fa-cog"></i><span data-i18n="btn.hospitalSetup">Hospital Setup</span>
+      </button>
+    </div>
+    <div class="firebase-status" id="firebase-status" style="margin-top:6px;">
       <span class="status-dot offline" id="firebase-dot"></span>
-      <span id="firebase-label">Offline Mode</span>
+      <span id="firebase-label" data-i18n="sidebar.firebaseMode">Offline Mode</span>
     </div>
   </div>
 </nav>
@@ -147,8 +169,8 @@
       <button class="btn-icon" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark / light theme" aria-label="Toggle theme">
         <i class="fas fa-moon" id="theme-icon"></i>
       </button>
-      <button class="btn-icon lang-toggle" id="lang-toggle" title="Toggle Urdu/English">
-        <i class="fas fa-language"></i><span id="lang-label">اردو</span>
+      <button class="btn-icon lang-toggle" id="lang-toggle" title="Toggle Urdu/English" onclick="AppController.toggleLang()">
+        <i class="fas fa-language"></i><span id="lang-label" data-i18n="lang.toggle">اردو</span>
       </button>
       <div class="date-display">
         <i class="fas fa-calendar-alt"></i>
@@ -306,6 +328,19 @@
             </div>
 
             <div class="form-group">
+              <label for="child-sex">Sex <span class="optional-tag">optional – improves WFH accuracy</span></label>
+              <div class="sex-btn-row">
+                <button type="button" class="sex-btn" id="sex-btn-girl" data-sex="girl" onclick="setSex('girl')">
+                  <i class="fas fa-venus"></i> <span data-i18n="btn.girl">Girl</span>
+                </button>
+                <button type="button" class="sex-btn" id="sex-btn-boy" data-sex="boy" onclick="setSex('boy')">
+                  <i class="fas fa-mars"></i> <span data-i18n="btn.boy">Boy</span>
+                </button>
+                <input type="hidden" id="child-sex" value="" />
+              </div>
+            </div>
+
+            <div class="form-group">
               <label for="child-age">Age <span class="required-tag">*</span></label>
               <div class="input-combo">
                 <input type="number" id="child-age" class="form-input" placeholder="e.g. 18" min="0" max="216" required />
@@ -358,12 +393,12 @@
                 <label class="radio-card radio-no" id="edema-no-card">
                   <input type="radio" name="edema" value="no" checked />
                   <i class="fas fa-check-circle"></i>
-                  <span>No Edema</span>
+                  <span data-i18n="form.edema.no">No Edema</span>
                 </label>
                 <label class="radio-card radio-yes" id="edema-yes-card">
                   <input type="radio" name="edema" value="yes" />
                   <i class="fas fa-exclamation-triangle"></i>
-                  <span>Yes – SAM</span>
+                  <span data-i18n="form.edema.yes">Yes – SAM</span>
                 </label>
               </div>
             </div>
@@ -373,31 +408,31 @@
               <label>Appetite <span class="required-tag">*</span></label>
               <div class="appetite-row" id="appetite-row">
                 <button type="button" class="appetite-btn active" data-value="good">
-                  <i class="fas fa-smile"></i><span>Good</span>
+                  <i class="fas fa-smile"></i><span data-i18n="btn.appetite.good">Good</span>
                 </button>
                 <button type="button" class="appetite-btn" data-value="fair">
-                  <i class="fas fa-meh"></i><span>Fair</span>
+                  <i class="fas fa-meh"></i><span data-i18n="btn.appetite.fair">Fair</span>
                 </button>
                 <button type="button" class="appetite-btn" data-value="poor">
-                  <i class="fas fa-frown"></i><span>Poor</span>
+                  <i class="fas fa-frown"></i><span data-i18n="btn.appetite.poor">Poor</span>
                 </button>
               </div>
-              <small class="form-hint">Appetite test: Offer RUTF — Good ≥50% eaten, Poor &lt;50%</small>
+              <small class="form-hint" data-i18n="form.appetite.hint">Appetite test: Offer RUTF — Good ≥50% eaten, Poor &lt;50%</small>
             </div>
 
             <!-- Additional Symptoms -->
             <div class="form-group">
               <label>Associated Symptoms</label>
               <div class="checkbox-row">
-                <label class="checkbox-pill"><input type="checkbox" id="sym-diarrhea" /> Diarrhea</label>
-                <label class="checkbox-pill"><input type="checkbox" id="sym-fever" /> Fever</label>
-                <label class="checkbox-pill"><input type="checkbox" id="sym-vomiting" /> Vomiting</label>
+                <label class="checkbox-pill"><input type="checkbox" id="sym-diarrhea" /> <span data-i18n="sym.diarrhea">Diarrhea</span></label>
+                <label class="checkbox-pill"><input type="checkbox" id="sym-fever" /> <span data-i18n="sym.fever">Fever</span></label>
+                <label class="checkbox-pill"><input type="checkbox" id="sym-vomiting" /> <span data-i18n="sym.vomiting">Vomiting</span></label>
                 <label class="checkbox-pill"><input type="checkbox" id="sym-respiratory" /> Resp. Distress</label>
               </div>
             </div>
 
             <button type="button" class="btn btn-primary btn-full" onclick="AssessmentModule.classify()">
-              <i class="fas fa-search-plus"></i> Classify &amp; Calculate Requirements
+              <i class="fas fa-search-plus"></i> <span data-i18n="btn.classify">Classify &amp; Calculate Requirements</span>
             </button>
           </form>
         </div>
@@ -456,13 +491,13 @@
         <!-- Action Buttons -->
         <div class="action-row">
           <button class="btn btn-primary" onclick="AssessmentModule.goToPlanner()">
-            <i class="fas fa-utensils"></i> Create Diet Plan
+            <i class="fas fa-utensils"></i> <span data-i18n="btn.createDiet">Create Diet Plan</span>
           </button>
           <button class="btn btn-outline" onclick="AssessmentModule.viewF75()">
-            <i class="fas fa-flask"></i> F-75 / F-100
+            <i class="fas fa-flask"></i> <span data-i18n="btn.f75f100">F-75 / F-100</span>
           </button>
           <button class="btn btn-outline" onclick="AssessmentModule.saveAssessment()">
-            <i class="fas fa-save"></i> Save Assessment
+            <i class="fas fa-save"></i> <span data-i18n="btn.saveAssessment">Save Assessment</span>
           </button>
         </div>
 
@@ -473,19 +508,19 @@
   <!-- ════════════════ VIEW: DIET PLANNER ════════════════ -->
   <div id="view-planner" class="view">
     <div class="view-header-bar">
-      <h2>Diet Planner</h2>
-      <p>Build a customized diet plan for the assessed child</p>
+      <h2 data-i18n="planner.heading">Diet Planner</h2>
+      <p data-i18n="planner.subheading">Build a customized diet plan for the assessed child</p>
     </div>
 
     <!-- Active Patient Bar -->
     <div class="patient-bar" id="planner-patient-bar">
       <div class="patient-chips">
-        <div class="p-chip"><i class="fas fa-user"></i><span id="planner-name">No patient selected</span></div>
+        <div class="p-chip"><i class="fas fa-user"></i><span id="planner-name" data-i18n-fallback="planner.noPatient">No patient selected</span></div>
         <div class="p-chip" id="planner-class-chip"><i class="fas fa-tag"></i><span id="planner-class">—</span></div>
-        <div class="p-chip green"><i class="fas fa-bullseye"></i><span>Target: <strong id="planner-target">—</strong> kcal/day</span></div>
+        <div class="p-chip green"><i class="fas fa-bullseye"></i><span><span data-i18n="planner.target">Target:</span> <strong id="planner-target">—</strong> kcal/day</span></div>
       </div>
       <button class="btn btn-sm btn-outline" onclick="AppController.navigate('assessment')">
-        <i class="fas fa-user-plus"></i> Change Patient
+        <i class="fas fa-user-plus"></i> <span data-i18n="btn.changePatient">Change Patient</span>
       </button>
     </div>
 
@@ -495,24 +530,24 @@
       <div class="planner-left">
         <div class="card h-full">
           <div class="card-header">
-            <h3><i class="fas fa-search"></i> Food Library</h3>
+            <h3><i class="fas fa-search"></i> <span data-i18n="planner.foodLib.title">Food Library</span></h3>
           </div>
           <div class="card-body">
             <div class="food-search-box">
               <i class="fas fa-search"></i>
-              <input type="text" id="food-search" class="form-input" placeholder="Search foods…" oninput="DietPlanner.filterFoods(this.value)" />
+              <input type="text" id="food-search" class="form-input" placeholder="Search foods…" data-i18n-placeholder="placeholder.searchFood" oninput="DietPlanner.filterFoods(this.value)" />
             </div>
             <div class="cat-tabs" id="cat-tabs">
-              <button class="cat-tab active" data-cat="all">All</button>
-              <button class="cat-tab" data-cat="grain">Grains</button>
-              <button class="cat-tab" data-cat="protein">Protein</button>
-              <button class="cat-tab" data-cat="dairy">Dairy</button>
-              <button class="cat-tab" data-cat="legume">Legumes</button>
-              <button class="cat-tab" data-cat="fat">Fats</button>
-              <button class="cat-tab" data-cat="fruit">Fruits</button>
-              <button class="cat-tab" data-cat="vegetable">Veg</button>
-              <button class="cat-tab" data-cat="mixed">Mixed Dishes</button>
-              <button class="cat-tab" data-cat="therapeutic">Therapeutic</button>
+              <button class="cat-tab active" data-cat="all" data-i18n="planner.cat.all">All</button>
+              <button class="cat-tab" data-cat="grain" data-i18n="planner.cat.grains">Grains</button>
+              <button class="cat-tab" data-cat="protein" data-i18n="planner.cat.protein">Protein</button>
+              <button class="cat-tab" data-cat="dairy" data-i18n="planner.cat.dairy">Dairy</button>
+              <button class="cat-tab" data-cat="legume" data-i18n="planner.cat.legumes">Legumes</button>
+              <button class="cat-tab" data-cat="fat" data-i18n="planner.cat.fats">Fats</button>
+              <button class="cat-tab" data-cat="fruit" data-i18n="planner.cat.fruits">Fruits</button>
+              <button class="cat-tab" data-cat="vegetable" data-i18n="planner.cat.veg">Veg</button>
+              <button class="cat-tab" data-cat="mixed" data-i18n="planner.cat.mixed">Mixed Dishes</button>
+              <button class="cat-tab" data-cat="therapeutic" data-i18n="planner.cat.therapeutic">Therapeutic</button>
             </div>
             <div class="food-grid" id="food-grid">
               <!-- Populated by DietPlanner.renderFoodLibrary() -->
@@ -535,22 +570,22 @@
           <div class="card-body">
             <div class="macro-grid">
               <div class="macro-item">
-                <div class="macro-head"><span>Calories</span><span class="macro-val" id="cal-val">0 kcal</span></div>
+                <div class="macro-head"><span data-i18n="planner.macro.calories">Calories</span><span class="macro-val" id="cal-val">0 kcal</span></div>
                 <div class="prog-wrap"><div class="prog-bar cal-prog" id="cal-prog" style="width:0%"></div></div>
-                <div class="macro-target">Target: <span id="cal-target-lbl">—</span></div>
+                <div class="macro-target"><span data-i18n="planner.macro.target">Target:</span> <span id="cal-target-lbl">—</span></div>
               </div>
               <div class="macro-item">
-                <div class="macro-head"><span>Protein</span><span class="macro-val" id="prot-val">0 g</span></div>
+                <div class="macro-head"><span data-i18n="planner.macro.protein">Protein</span><span class="macro-val" id="prot-val">0 g</span></div>
                 <div class="prog-wrap"><div class="prog-bar prot-prog" id="prot-prog" style="width:0%"></div></div>
-                <div class="macro-target">Target: <span id="prot-target-lbl">—</span></div>
+                <div class="macro-target"><span data-i18n="planner.macro.target">Target:</span> <span id="prot-target-lbl">—</span></div>
               </div>
               <div class="macro-item">
-                <div class="macro-head"><span>Fat</span><span class="macro-val" id="fat-val">0 g</span></div>
+                <div class="macro-head"><span data-i18n="planner.macro.fat">Fat</span><span class="macro-val" id="fat-val">0 g</span></div>
                 <div class="prog-wrap"><div class="prog-bar fat-prog" id="fat-prog" style="width:0%"></div></div>
-                <div class="macro-target">Target: <span id="fat-target-lbl">—</span></div>
+                <div class="macro-target"><span data-i18n="planner.macro.target">Target:</span> <span id="fat-target-lbl">—</span></div>
               </div>
               <div class="macro-item">
-                <div class="macro-head"><span>Carbohydrates</span><span class="macro-val" id="carb-val">0 g</span></div>
+                <div class="macro-head"><span data-i18n="planner.macro.carbs">Carbohydrates</span><span class="macro-val" id="carb-val">0 g</span></div>
                 <div class="prog-wrap"><div class="prog-bar carb-prog" id="carb-prog" style="width:0%"></div></div>
               </div>
             </div>
@@ -582,13 +617,13 @@
         <!-- Actions -->
         <div class="action-row">
           <button class="btn btn-primary" onclick="DietPlanner.saveDiet()">
-            <i class="fas fa-save"></i> Save Plan
+            <i class="fas fa-save"></i> <span data-i18n="btn.savePlan">Save Plan</span>
           </button>
           <button class="btn btn-outline" onclick="DietPlanner.exportPDF()">
-            <i class="fas fa-download"></i> Export PDF
+            <i class="fas fa-download"></i> <span data-i18n="btn.exportPdf">Export PDF</span>
           </button>
           <button class="btn btn-outline" onclick="DietPlanner.printUrdu()">
-            <i class="fas fa-print"></i> Print (اردو)
+            <i class="fas fa-print"></i> <span data-i18n="btn.printUrdu">Print (اردو)</span>
           </button>
         </div>
       </div>
@@ -639,11 +674,10 @@
     </div>
   </div><!-- /view-fooddb -->
 
-  <!-- ════════════════ VIEW: SAVED DIETS ════════════════ -->
   <div id="view-saved" class="view">
     <div class="view-header-bar">
-      <h2>Saved Diets &amp; Assessments</h2>
-      <p>View and manage saved patient records</p>
+      <h2>Patient Records</h2>
+      <p>View and manage patients grouped by hospital</p>
     </div>
     <div class="toolbar">
       <div class="search-box-wrapper">
@@ -653,8 +687,8 @@
     </div>
     <div id="saved-list">
       <div class="empty-state card-empty">
-        <i class="fas fa-folder-open fa-3x"></i>
-        <h3>No saved records</h3>
+        <i class="fas fa-users fa-3x"></i>
+        <h3>No patient records</h3>
         <p>Save assessments and diet plans to view them here</p>
         <button class="btn btn-primary" onclick="AppController.navigate('assessment')">
           <i class="fas fa-plus"></i> New Assessment
@@ -993,20 +1027,18 @@
 <div class="modal-overlay" id="modal-add-diet" style="display:none;" onclick="DietPlanner.closeAddModal(event)">
   <div class="modal modal-sm" onclick="event.stopPropagation()">
     <div class="modal-header">
-      <h3>Add to Diet Chart</h3>
+      <h3 data-i18n="modal.addDiet.title">Add to Diet Chart</h3>
       <button class="modal-close" onclick="DietPlanner.closeAddModal()"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
       <div id="add-diet-preview" class="food-add-preview"></div>
       <div class="form-group">
-        <label>Amount (grams)</label>
+        <label><span data-i18n="modal.addDiet.measure">Household Measure</span> <span class="label-urdu-hint" data-i18n-hide-on-ur>(گھریلو پیمانہ)</span></label>
+        <div class="measure-grid" id="measure-grid"></div>
+      </div>
+      <div class="form-group">
+        <label><span data-i18n="modal.addDiet.amount">Amount (grams)</span> <span style="font-size:.75rem;color:var(--text-muted);">— auto-filled by measure</span></label>
         <input type="number" id="diet-amount" class="form-input" value="100" min="5" max="1000" step="5" oninput="DietPlanner.previewNutrition()" />
-        <div class="quick-amounts">
-          <button type="button" onclick="DietPlanner.setAmount(50)">50g</button>
-          <button type="button" onclick="DietPlanner.setAmount(100)">100g</button>
-          <button type="button" onclick="DietPlanner.setAmount(150)">150g</button>
-          <button type="button" onclick="DietPlanner.setAmount(200)">200g</button>
-        </div>
       </div>
       <div class="form-group">
         <label>Meal Time</label>
@@ -1022,8 +1054,169 @@
       <div class="nutrition-preview" id="diet-nutrition-preview"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="DietPlanner.closeAddModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="DietPlanner.confirmAdd()"><i class="fas fa-plus"></i> Add to Diet</button>
+      <button class="btn btn-outline" onclick="DietPlanner.closeAddModal()"><span data-i18n="btn.cancel">Cancel</span></button>
+      <button class="btn btn-primary" onclick="DietPlanner.confirmAdd()"><i class="fas fa-plus"></i> <span data-i18n="btn.addToDiet">Add to Diet</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     HOSPITAL SETUP MODAL
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-hospital-setup" style="display:none;" onclick="if(event.target===this&&HospitalAuth.isSetup())HospitalAuth.closeSetupModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-hospital-alt"></i> Hospital Setup</h3>
+      <button class="modal-close" onclick="if(HospitalAuth.isSetup())HospitalAuth.closeSetupModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info" style="margin-bottom:1rem;">
+        <i class="fas fa-info-circle"></i>
+        <div>Set a hospital name and PIN. Staff with the PIN can add/edit records. Attendants without PIN can view only.</div>
+      </div>
+      <div class="form-group">
+        <label>Hospital / Clinic Name <span class="required-tag">*</span></label>
+        <input type="text" id="hosp-setup-name" class="form-input" placeholder="e.g. DHQ Hospital Lahore" />
+      </div>
+      <div class="form-group">
+        <label>Location / District <span class="optional-tag">optional</span></label>
+        <input type="text" id="hosp-setup-location" class="form-input" placeholder="e.g. Lahore, Punjab" />
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Staff PIN <span class="required-tag">*</span> (4+ digits)</label>
+          <input type="password" id="hosp-setup-pin" class="form-input" placeholder="••••" maxlength="12" />
+        </div>
+        <div class="form-group">
+          <label>Confirm PIN</label>
+          <input type="password" id="hosp-setup-pin-confirm" class="form-input" placeholder="••••" maxlength="12" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="HospitalAuth.submitSetup()"><i class="fas fa-save"></i> Save Hospital Setup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PIN ENTRY MODAL
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-pin" style="display:none;" onclick="if(event.target===this)HospitalAuth.closePinModal()">
+  <div class="modal modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-lock"></i> Staff PIN</h3>
+      <button class="modal-close" onclick="HospitalAuth.closePinModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:1.5rem;">
+      <i class="fas fa-key fa-2x" style="color:var(--primary);margin-bottom:1rem;"></i>
+      <p style="margin-bottom:1rem;">Enter the hospital staff PIN to enable editing</p>
+      <input type="password" id="pin-input" class="form-input" placeholder="Enter PIN"
+        maxlength="12" onkeydown="if(event.key==='Enter')HospitalAuth.submitPin()"
+        style="text-align:center;font-size:1.2rem;letter-spacing:4px;" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="HospitalAuth.closePinModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="HospitalAuth.submitPin()"><i class="fas fa-unlock"></i> Verify PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PATIENT RECORD MODAL (trend chart + timeline + diets)
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-patient-record" style="display:none;" onclick="if(event.target===this)PatientRecordModal.close()">
+  <div class="modal modal-xl" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3 id="pr-patient-name" style="margin:0;">Patient</h3>
+        <div style="font-size:.78rem;color:var(--text-2);margin-top:2px;">
+          <i class="fas fa-hospital-alt"></i> <span id="pr-hospital">—</span>
+          &nbsp; <span id="pr-class-badge" class="badge green">Normal</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="PatientRecordModal.close()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body pr-modal-body">
+
+      <!-- Trend charts -->
+      <div class="pr-section">
+        <h4 class="pr-section-title"><i class="fas fa-chart-line"></i> Growth Trends</h4>
+        <div class="trend-charts-grid">
+          <div class="trend-chart-wrap">
+            <div class="trend-chart-label">Weight Over Time</div>
+            <canvas id="trend-weight-chart" height="160"></canvas>
+          </div>
+          <div class="trend-chart-wrap">
+            <div class="trend-chart-label">MUAC Over Time</div>
+            <canvas id="trend-muac-chart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assessments timeline -->
+      <div class="pr-section">
+        <h4 class="pr-section-title"><i class="fas fa-history"></i> Assessment History</h4>
+        <div id="pr-timeline" class="pr-timeline"></div>
+      </div>
+
+      <!-- Diet plans -->
+      <div class="pr-section">
+        <h4 class="pr-section-title"><i class="fas fa-utensils"></i> Diet Plans</h4>
+        <div id="pr-diets" class="pr-diets"></div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <div class="view-only-msg" style="font-size:.8rem;color:var(--text-2);">
+        <i class="fas fa-lock"></i> View-only mode — enter staff PIN to edit
+      </div>
+      <button class="btn btn-outline" onclick="PatientRecordModal.close()">Close</button>
+      <button class="btn btn-primary staff-only" onclick="PatientRecordModal.openAddMeasurement()">
+        <i class="fas fa-plus"></i> Add Measurement
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     ADD / EDIT MEASUREMENT MODAL
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-add-measurement" style="display:none;" onclick="if(event.target===this)PatientRecordModal.closeAddMeasurement()">
+  <div class="modal modal-sm" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-add-measurement-title"><i class="fas fa-weight"></i> Add Measurement</h3>
+      <button class="modal-close" onclick="PatientRecordModal.closeAddMeasurement()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Weight (kg) <span class="required-tag">*</span></label>
+          <input type="number" id="meas-weight" class="form-input" placeholder="e.g. 8.5" min="0.5" max="60" step="0.1" />
+        </div>
+        <div class="form-group">
+          <label>Age (months)</label>
+          <input type="number" id="meas-age" class="form-input" placeholder="e.g. 24" min="0" max="216" />
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Height (cm)</label>
+          <input type="number" id="meas-height" class="form-input" placeholder="e.g. 80" min="30" max="180" step="0.5" />
+        </div>
+        <div class="form-group">
+          <label>MUAC (cm)</label>
+          <input type="number" id="meas-muac" class="form-input" placeholder="e.g. 11.8" min="5" max="25" step="0.1" />
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:4px;">
+        <i class="fas fa-info-circle"></i>
+        <p>Classification will be automatically recalculated based on WHO tables.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="PatientRecordModal.closeAddMeasurement()">Cancel</button>
+      <button class="btn btn-primary" onclick="PatientRecordModal.saveAddMeasurement()"><i class="fas fa-save"></i> Save</button>
     </div>
   </div>
 </div>
@@ -1043,12 +1236,17 @@
 <!-- ═══════════════════════════════════════════════════
      SCRIPTS (order matters)
 ═══════════════════════════════════════════════════ -->
+<script src="i18n/i18n.js"></script>
+<script src="i18n/en.js"></script>
+<script src="i18n/ur.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/nutrition.js"></script>
 <script src="js/food-database.js"></script>
 <script src="js/suggestions.js"></script>
+<script src="js/household-measures.js"></script>
 <script src="js/diet-planner.js"></script>
 <script src="js/pdf-export.js"></script>
+<script src="js/hospital-auth.js"></script>
 <script src="js/app.js"></script>
 
 </body>

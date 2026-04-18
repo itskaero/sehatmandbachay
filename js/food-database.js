@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
    food-database.js  –  SehatMand Bachay
-   Comprehensive Pakistani food library (89 foods) + Firebase
+   Comprehensive Pakistani food library (126 foods) + Firebase
    CRUD operations for custom food management.
    Nutrient values per 100 g sourced from:
      • Pakistan National Nutrition Survey 2018
@@ -10,7 +10,7 @@
 ═══════════════════════════════════════════════════════════════ */
 
 /* ════════════════════════════════════════════════════════════════
-   PRE-LOADED PAKISTANI FOOD LIBRARY  (89 items)
+   PRE-LOADED PAKISTANI FOOD LIBRARY  (126 items)
    Structure per food:
      id        – unique string (pk_NNN)
      name      – English name
@@ -786,6 +786,345 @@ const LOCAL_FOODS = [
     emoji: "🥜", category: "mixed", cost: "low",
     per100g: { calories: 490, protein: 15.0, carbs: 48.0, fat: 28.0 },
     tips: "Homemade RUTF-like snack. Very high energy and protein. Each 30g ball ≈ 145 kcal + 4.5g protein.",
+    isLocal: true
+  },
+
+  /* ── MORE MIXED / TRADITIONAL DISHES ───────────────────────── */
+  {
+    id: "pk_095",
+    name: "Vegetable Salad / Kachumber (raw mixed veg, no dressing)",
+    nameUrdu: "سبزی کا سلاد / کچومبر",
+    emoji: "🥗", category: "mixed", cost: "low",
+    per100g: { calories: 25, protein: 1.2, carbs: 5.0, fat: 0.2 },
+    tips: "Tomato, cucumber, onion, carrot mix. Add a squeeze of lemon to boost iron absorption from other foods.",
+    isLocal: true
+  },
+  {
+    id: "pk_096",
+    name: "Fruit Salad (mixed seasonal fruits with cream)",
+    nameUrdu: "پھلوں کا سلاد",
+    emoji: "🍓", category: "mixed", cost: "medium",
+    per100g: { calories: 88, protein: 1.0, carbs: 16.5, fat: 2.3 },
+    tips: "Combine banana, mango, apple, papaya with full-fat cream for a vitamin-rich, calorie-dense treat.",
+    isLocal: true
+  },
+  {
+    id: "pk_097",
+    name: "Chicken Biryani (bone-in, full-fat rice dish)",
+    nameUrdu: "چکن بریانی",
+    emoji: "🍛", category: "mixed", cost: "high",
+    per100g: { calories: 165, protein: 8.5, carbs: 22.0, fat: 5.0 },
+    tips: "Energy-rich complete meal. Shred chicken finely for young children. Remove bones carefully before serving.",
+    isLocal: true
+  },
+  {
+    id: "pk_098",
+    name: "Yakhni Pulao (Chicken/Mutton Rice in broth)",
+    nameUrdu: "یخنی پلاؤ",
+    emoji: "🍚", category: "mixed", cost: "medium",
+    per100g: { calories: 152, protein: 7.0, carbs: 20.5, fat: 5.0 },
+    tips: "Aromatic rice cooked in bone broth — rich in collagen, minerals. Good rehabilitation phase meal.",
+    isLocal: true
+  },
+  {
+    id: "pk_099",
+    name: "Chicken Karahi (tomato-based dry curry)",
+    nameUrdu: "چکن کڑاہی",
+    emoji: "🍲", category: "mixed", cost: "high",
+    per100g: { calories: 162, protein: 14.5, carbs: 4.0, fat: 10.0 },
+    tips: "High-protein meal. Shred chicken finely for toddlers. Tomato provides vitamin C to aid iron absorption.",
+    isLocal: true
+  },
+  {
+    id: "pk_100",
+    name: "Daal Makhni (Black Lentils + Butter/Cream)",
+    nameUrdu: "دال مکھنی",
+    emoji: "🍲", category: "mixed", cost: "medium",
+    per100g: { calories: 132, protein: 6.5, carbs: 13.5, fat: 5.8 },
+    tips: "Nutrient-dense comfort food. High protein + healthy fat from butter/cream. Ideal for rehabilitation phase.",
+    isLocal: true
+  },
+  {
+    id: "pk_101",
+    name: "Chana Masala (Chickpea Curry)",
+    nameUrdu: "چنا مسالہ",
+    emoji: "🫘", category: "mixed", cost: "low",
+    per100g: { calories: 128, protein: 6.5, carbs: 18.0, fat: 3.5 },
+    tips: "High fibre and plant protein. Add lemon juice for vitamin C. Mash for young children. Iron and folate rich.",
+    isLocal: true
+  },
+  {
+    id: "pk_102",
+    name: "Aloo Palak (Potato + Spinach Curry)",
+    nameUrdu: "آلو پالک",
+    emoji: "🥬", category: "mixed", cost: "low",
+    per100g: { calories: 75, protein: 2.5, carbs: 9.5, fat: 3.2 },
+    tips: "Iron + potassium + beta-carotene combination. Add ghee to improve fat-soluble vitamin absorption.",
+    isLocal: true
+  },
+  {
+    id: "pk_103",
+    name: "Saag Gosht (Mustard Greens + Mutton Curry)",
+    nameUrdu: "ساگ گوشت",
+    emoji: "🍖", category: "mixed", cost: "medium",
+    per100g: { calories: 118, protein: 8.5, carbs: 5.0, fat: 7.5 },
+    tips: "Highest iron content of all traditional dishes — haem iron from meat + non-haem from greens. Shred meat finely.",
+    isLocal: true
+  },
+  {
+    id: "pk_104",
+    name: "Shami Kebab (Minced Meat + Lentil Patty)",
+    nameUrdu: "شامی کباب",
+    emoji: "🥩", category: "mixed", cost: "medium",
+    per100g: { calories: 228, protein: 15.0, carbs: 14.5, fat: 11.5 },
+    tips: "Soft minced meat + chana daal = excellent protein combination. Crumble for young children.",
+    isLocal: true
+  },
+  {
+    id: "pk_105",
+    name: "Nihari (Slow-cooked Beef Shank Stew)",
+    nameUrdu: "نہاری",
+    emoji: "🍛", category: "mixed", cost: "medium",
+    per100g: { calories: 175, protein: 15.5, carbs: 4.5, fat: 11.0 },
+    tips: "Very high collagen, iron and zinc from bone marrow. Rich bone broth. Traditional recovery food.",
+    isLocal: true
+  },
+  {
+    id: "pk_106",
+    name: "Daal Shorba (Thin Lentil Soup)",
+    nameUrdu: "دال شوربہ",
+    emoji: "🥣", category: "mixed", cost: "low",
+    per100g: { calories: 65, protein: 4.2, carbs: 10.0, fat: 1.5 },
+    tips: "Light, easily digestible soup for ill children. Good introduction to solids. Enrich with oil and lemon.",
+    isLocal: true
+  },
+  {
+    id: "pk_107",
+    name: "Vegetable Soup / Sabzi Shorba",
+    nameUrdu: "سبزی کا سوپ",
+    emoji: "🥦", category: "mixed", cost: "low",
+    per100g: { calories: 38, protein: 1.8, carbs: 7.0, fat: 0.8 },
+    tips: "Blend carrots, potato, peas, pumpkin. Strain for sick infants. Add oil to boost calories significantly.",
+    isLocal: true
+  },
+  {
+    id: "pk_108",
+    name: "Chicken Yakhni Soup (clear bone broth)",
+    nameUrdu: "چکن یخنی",
+    emoji: "🍵", category: "mixed", cost: "medium",
+    per100g: { calories: 45, protein: 6.0, carbs: 1.5, fat: 2.0 },
+    tips: "Collagen, minerals and electrolytes from slow-cooked bones. Excellent hydrating food for ill or recovering children.",
+    isLocal: true
+  },
+  {
+    id: "pk_109",
+    name: "Aloo Matar (Potato + Pea Curry)",
+    nameUrdu: "آلو مٹر",
+    emoji: "🥔", category: "mixed", cost: "low",
+    per100g: { calories: 83, protein: 2.5, carbs: 13.0, fat: 2.8 },
+    tips: "Very common household dish. Soft, easy to mash. Add extra oil for calorie-dense meal for young children.",
+    isLocal: true
+  },
+  {
+    id: "pk_110",
+    name: "Mixed Vegetable Curry / Sabzi Mix",
+    nameUrdu: "مخلوط سبزی",
+    emoji: "🥘", category: "mixed", cost: "low",
+    per100g: { calories: 72, protein: 2.2, carbs: 10.0, fat: 2.8 },
+    tips: "Broad micronutrient coverage. Add diced potato and extra ghee to increase calorie density.",
+    isLocal: true
+  },
+  {
+    id: "pk_111",
+    name: "Egg Curry / Anda Salan",
+    nameUrdu: "انڈہ سالن",
+    emoji: "🥚", category: "mixed", cost: "low",
+    per100g: { calories: 140, protein: 9.2, carbs: 5.0, fat: 9.5 },
+    tips: "Affordable complete-protein curry. Cut eggs into small pieces for young children. Serve with rice or roti.",
+    isLocal: true
+  },
+  {
+    id: "pk_112",
+    name: "Qorma / Korma (Mild Meat Curry in Yogurt Gravy)",
+    nameUrdu: "قورمہ",
+    emoji: "🍛", category: "mixed", cost: "high",
+    per100g: { calories: 178, protein: 12.0, carbs: 5.5, fat: 12.5 },
+    tips: "Rich, mild curry — no chilli irritation for young children. High energy and protein. Shred meat finely.",
+    isLocal: true
+  },
+  {
+    id: "pk_113",
+    name: "Rabri / Firni (Thickened Milk Dessert)",
+    nameUrdu: "رابڑی / پھرنی",
+    emoji: "🍮", category: "mixed", cost: "medium",
+    per100g: { calories: 170, protein: 4.5, carbs: 26.5, fat: 5.5 },
+    tips: "Calorie and protein-dense from concentrated whole milk. Good rehabilitation snack. Easy to accept by children.",
+    isLocal: true
+  },
+  {
+    id: "pk_114",
+    name: "Sattu Drink (Roasted Gram Flour + Water/Milk)",
+    nameUrdu: "ستّو",
+    emoji: "🥤", category: "mixed", cost: "low",
+    per100g: { calories: 385, protein: 20.6, carbs: 65.0, fat: 7.5 },
+    tips: "Traditional high-protein, high-energy dry powder. Dissolve in milk with gur for a dense recovery drink.",
+    isLocal: true
+  },
+  {
+    id: "pk_115",
+    name: "Aloo Gosht Shorba (Meat Potato Broth, thin)",
+    nameUrdu: "آلو گوشت شوربہ",
+    emoji: "🥩", category: "mixed", cost: "medium",
+    per100g: { calories: 85, protein: 6.5, carbs: 7.0, fat: 3.5 },
+    tips: "Thinned version of aloo gosht — easier to drink. Good for convalescing children who can't chew solid food.",
+    isLocal: true
+  },
+  {
+    id: "pk_116",
+    name: "Anda Bhurji with Roti (Scrambled Egg + Flatbread)",
+    nameUrdu: "انڈہ بھرجی روٹی",
+    emoji: "🍳", category: "mixed", cost: "low",
+    per100g: { calories: 225, protein: 10.5, carbs: 28.0, fat: 8.5 },
+    tips: "Balanced meal with complete protein, carbs and fat. Affordable, widely available. Crush roti pieces for infants.",
+    isLocal: true
+  },
+  {
+    id: "pk_117",
+    name: "Dahi Raita with Cucumber (plain yogurt + veg)",
+    nameUrdu: "دہی رائتہ",
+    emoji: "🥒", category: "mixed", cost: "low",
+    per100g: { calories: 55, protein: 3.2, carbs: 5.5, fat: 2.2 },
+    tips: "Probiotic and cooling. Helps gut flora recovery in SAM. Add a pinch of cumin. Easy to swallow.",
+    isLocal: true
+  },
+  {
+    id: "pk_118",
+    name: "Mango Lassi (fresh mango + full-fat yogurt)",
+    nameUrdu: "آم کی لسی",
+    emoji: "🥭", category: "mixed", cost: "low",
+    per100g: { calories: 85, protein: 3.0, carbs: 14.5, fat: 2.2 },
+    tips: "Rich in vitamin A (mango) + probiotic (yogurt). Seasonal summer drink with good calorie density.",
+    isLocal: true
+  },
+  {
+    id: "pk_119",
+    name: "Chicken Corn Soup",
+    nameUrdu: "چکن کارن سوپ",
+    emoji: "🌽", category: "mixed", cost: "medium",
+    per100g: { calories: 52, protein: 4.5, carbs: 6.5, fat: 1.2 },
+    tips: "Soft, easy-to-swallow soup. Popular first food for convalescing children. Add cream to boost calories.",
+    isLocal: true
+  },
+
+  /* ── MORE VEGETABLES ────────────────────────────────────────── */
+  {
+    id: "pk_120",
+    name: "Lady's Finger / Bhindi (cooked)",
+    nameUrdu: "بھنڈی",
+    emoji: "💚", category: "vegetable", cost: "low",
+    per100g: { calories: 33, protein: 1.9, carbs: 7.5, fat: 0.2 },
+    tips: "Mucilaginous gel soothes the gut — beneficial in recovery from diarrhea. Good folate and vitamin C.",
+    isLocal: true
+  },
+  {
+    id: "pk_121",
+    name: "Moringa / Suhanjna Leaves (cooked)",
+    nameUrdu: "سہانجنا / مورنگا",
+    emoji: "🌿", category: "vegetable", cost: "low",
+    per100g: { calories: 64, protein: 9.4, carbs: 8.3, fat: 1.4 },
+    tips: "Highest plant protein of any leaf vegetable. Exceptional iron, calcium, zinc, vitamins A and C. Add to daal or rice.",
+    isLocal: true
+  },
+  {
+    id: "pk_122",
+    name: "Fenugreek Leaves / Methi (cooked)",
+    nameUrdu: "میتھی کے پتے",
+    emoji: "🌿", category: "vegetable", cost: "low",
+    per100g: { calories: 49, protein: 4.4, carbs: 6.0, fat: 0.9 },
+    tips: "Iron and folic acid dense. Slightly bitter — combine with potato (Aloo Methi) to make palatable for children.",
+    isLocal: true
+  },
+  {
+    id: "pk_123",
+    name: "Tinda / Apple Gourd (cooked)",
+    nameUrdu: "ٹنڈا",
+    emoji: "🟢", category: "vegetable", cost: "low",
+    per100g: { calories: 21, protein: 1.2, carbs: 4.0, fat: 0.1 },
+    tips: "Very soft digestible vegetable. Good in summer months. Mash with oil and daal for infants.",
+    isLocal: true
+  },
+  {
+    id: "pk_124",
+    name: "Zucchini / Courgette (cooked)",
+    nameUrdu: "زکینی",
+    emoji: "🥒", category: "vegetable", cost: "medium",
+    per100g: { calories: 17, protein: 1.2, carbs: 3.1, fat: 0.3 },
+    tips: "Very light, easy to digest. Puree with oil for infants. Low calorie — always add fat or protein source.",
+    isLocal: true
+  },
+  {
+    id: "pk_125",
+    name: "Radish / Mooli (raw or cooked)",
+    nameUrdu: "مولی",
+    emoji: "🟥", category: "vegetable", cost: "low",
+    per100g: { calories: 16, protein: 0.7, carbs: 3.4, fat: 0.1 },
+    tips: "Good source of vitamin C. Traditionally eaten raw with daal chawal. Cook and blend for young children.",
+    isLocal: true
+  },
+
+  /* ── MORE FRUITS ────────────────────────────────────────────── */
+  {
+    id: "pk_126",
+    name: "Melon / Kharbooza (fresh)",
+    nameUrdu: "خربوزہ",
+    emoji: "🍈", category: "fruit", cost: "low",
+    per100g: { calories: 34, protein: 0.8, carbs: 8.2, fat: 0.2 },
+    tips: "High vitamin A and C. Hydrating summer fruit. Blend for infants. Good for hot-weather feeding.",
+    isLocal: true
+  },
+  {
+    id: "pk_127",
+    name: "Pear / Nashpati (fresh)",
+    nameUrdu: "ناشپاتی",
+    emoji: "🍐", category: "fruit", cost: "medium",
+    per100g: { calories: 57, protein: 0.4, carbs: 15.2, fat: 0.1 },
+    tips: "Pectin-rich for diarrhea management. Grate or puree for infants. Good iron-absorption enhancer.",
+    isLocal: true
+  },
+  {
+    id: "pk_128",
+    name: "Chikoo / Sapodilla (fresh)",
+    nameUrdu: "چیکو",
+    emoji: "🟤", category: "fruit", cost: "low",
+    per100g: { calories: 83, protein: 0.4, carbs: 19.9, fat: 1.1 },
+    tips: "Energy-dense sweet fruit. Good fibre, vitamin C and iron. Soft pulp ideal for young children.",
+    isLocal: true
+  },
+  {
+    id: "pk_129",
+    name: "Strawberry / Strawberry (fresh)",
+    nameUrdu: "اسٹرابیری",
+    emoji: "🍓", category: "fruit", cost: "high",
+    per100g: { calories: 32, protein: 0.7, carbs: 7.7, fat: 0.3 },
+    tips: "Highest vitamin C of local fruits. Slice or blend. Available seasonally in Swat valley region.",
+    isLocal: true
+  },
+  {
+    id: "pk_130",
+    name: "Dried Figs / Anjeer (dried)",
+    nameUrdu: "خشک انجیر",
+    emoji: "🫐", category: "fruit", cost: "medium",
+    per100g: { calories: 249, protein: 3.3, carbs: 63.9, fat: 0.9 },
+    tips: "Very iron and calcium-rich dried fruit. Soak in water, puree and give to children. Traditional anaemia remedy.",
+    isLocal: true
+  },
+  {
+    id: "pk_131",
+    name: "Lemon / Lime Juice (fresh squeezed)",
+    nameUrdu: "لیموں کا رس",
+    emoji: "🍋", category: "fruit", cost: "low",
+    per100g: { calories: 29, protein: 0.5, carbs: 9.3, fat: 0.3 },
+    tips: "Give 5–10 ml alongside iron-rich foods — vitamin C dramatically increases plant iron absorption. Add to daal.",
     isLocal: true
   },
 

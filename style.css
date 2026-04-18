@@ -1428,3 +1428,236 @@ body.sidebar-collapsed .main-content {
   .food-grid { grid-template-columns: repeat(2, 1fr); }
   .patient-chips { flex-direction: column; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   NEW FEATURES — Hospital Auth, Patient Records, Trend Charts
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Sex selector ───────────────────────────────────────────── */
+.sex-btn-row { display: flex; gap: 8px; }
+.sex-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 500;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.sex-btn:hover { border-color: var(--primary); color: var(--primary); }
+.sex-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+/* ── Sidebar hospital footer ────────────────────────────────── */
+.hospital-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255,255,255,.06);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+}
+.hosp-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  color: var(--text-white);
+  opacity: .85;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.collapsed .hospital-footer,
+.collapsed .hosp-actions { display: none; }
+
+.auth-badge {
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.auth-badge.authed    { background: #16a34a; color: #fff; }
+.auth-badge.view-only { background: #64748b; color: #fff; }
+
+.hosp-actions { padding: 0 2px; }
+.hosp-actions .btn { font-size: .75rem; padding: 5px 10px; }
+.w-full { width: 100%; justify-content: center; }
+
+/* ── Small button variant ───────────────────────────────────── */
+.btn-xs {
+  padding: 3px 8px;
+  font-size: .72rem;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+
+/* ── Patient record cards ───────────────────────────────────── */
+.patient-group { cursor: pointer; transition: var(--transition); }
+.patient-group:hover { box-shadow: 0 4px 20px rgba(26,127,90,.18); transform: translateY(-1px); }
+
+/* ── Modal sizes ────────────────────────────────────────────── */
+.modal-xl {
+  max-width: 820px;
+  width: 96vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
+}
+.modal-xl .modal-body { overflow-y: auto; flex: 1; }
+
+/* ── Patient Record Modal body ──────────────────────────────── */
+.pr-modal-body { padding: 1.25rem; }
+.pr-section { margin-bottom: 1.5rem; }
+.pr-section-title {
+  font-size: .82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-2);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Trend charts grid ──────────────────────────────────────── */
+.trend-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 600px) { .trend-charts-grid { grid-template-columns: 1fr; } }
+.trend-chart-wrap {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+.trend-chart-label {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+
+/* ── Timeline ───────────────────────────────────────────────── */
+.pr-timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-entry {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  animation: fadeInUp .2s ease both;
+  animation-delay: calc(var(--idx, 0) * 40ms);
+}
+.timeline-entry:last-of-type { border-bottom: none; }
+.tl-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.tl-dot.sam    { background: var(--danger); }
+.tl-dot.mam    { background: var(--warning); }
+.tl-dot.normal { background: var(--success); }
+
+.tl-body { flex: 1; min-width: 0; }
+.tl-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tl-date { font-size: .75rem; color: var(--text-3); margin-left: auto; }
+.tl-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: .82rem;
+  color: var(--text-2);
+}
+.tl-metrics span { display: flex; align-items: center; gap: 4px; }
+.tl-add { padding: 10px 0; }
+
+/* ── Diet record items in patient modal ─────────────────────── */
+.diet-record-item {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  background: var(--surface-2);
+}
+.diet-rec-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ── View-only indicator ───────────────────────────────────── */
+.view-only-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: .78rem;
+  color: var(--text-3);
+}
+
+
+/* ── Household Measure Picker ───────────────────────────────── */
+.measure-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.measure-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  cursor: pointer;
+  font-size: .72rem;
+  color: var(--text-2);
+  min-width: 64px;
+  text-align: center;
+  transition: border-color .15s, background .15s;
+  line-height: 1.3;
+}
+.measure-btn:hover { border-color: var(--primary); background: var(--primary-light, #e8f4fd); }
+.measure-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+.measure-btn.active .mb-grams { color: rgba(255,255,255,.85); }
+.measure-btn.active .mb-urdu { color: rgba(255,255,255,.75); }
+.mb-icon  { font-size: 1.1rem; line-height: 1; }
+.mb-label { font-weight: 600; font-size: .73rem; }
+.mb-grams { font-size: .68rem; color: var(--primary); }
+.mb-urdu  { font-size: .65rem; color: var(--text-3); direction: rtl; }
+
+/* ── Diet item measure label ────────────────────────────────── */
+.di-measure {
+  font-size: .78rem;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* ── i18n — hide Urdu parenthetical hint when UI is already Urdu ── */
+.label-urdu-hint { font-size: .75rem; color: var(--text-muted); }
+[dir="rtl"] .label-urdu-hint { display: none; }

@@ -134,9 +134,31 @@ const DietPlanner = (() => {
       </div>`;
 
     document.getElementById("diet-amount").value = 100;
+    renderMeasureGrid(food);
     previewNutrition();
     document.getElementById("modal-add-diet").style.display = "flex";
     setTimeout(() => document.getElementById("diet-amount").select(), 100);
+  }
+
+  function renderMeasureGrid(food) {
+    const grid = document.getElementById("measure-grid");
+    if (!grid) return;
+    const measures = HouseholdMeasures.getMeasures(food);
+    grid.innerHTML = measures.map(m =>
+      `<button type="button" class="measure-btn" onclick="DietPlanner.selectMeasure(${m.grams},this)" title="${m.labelUrdu}">
+        <span class="mb-icon">${m.icon}</span>
+        <span class="mb-label">${m.label}</span>
+        <span class="mb-grams">≈${m.grams}g</span>
+        <span class="mb-urdu">${m.labelUrdu}</span>
+      </button>`
+    ).join("");
+  }
+
+  function selectMeasure(grams, btn) {
+    document.querySelectorAll(".measure-btn").forEach(b => b.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+    document.getElementById("diet-amount").value = grams;
+    previewNutrition();
   }
 
   function closeAddModal(e) {
@@ -172,11 +194,13 @@ const DietPlanner = (() => {
     if (!food) return;
     const amount = parseFloat(document.getElementById("diet-amount").value);
     const meal   = document.getElementById("diet-meal").value;
+    const activeBtn = document.querySelector(".measure-btn.active");
+    const measureLabel = activeBtn ? activeBtn.querySelector(".mb-label").textContent : null;
     if (!amount || amount <= 0) {
       AppController.showToast("Enter a valid amount", "error"); return;
     }
 
-    dietItems.push({ uid: Date.now(), foodId: selectedFoodId, food, amount, meal });
+    dietItems.push({ uid: Date.now(), foodId: selectedFoodId, food, amount, meal, measureLabel });
     document.getElementById("modal-add-diet").style.display = "none";
     selectedFoodId = null;
     renderDietChart();
@@ -218,7 +242,7 @@ const DietPlanner = (() => {
           <span class="di-emoji">${item.food.emoji || "🍽️"}</span>
           <div class="di-info">
             <div class="di-name">${escHtml(item.food.name)}</div>
-            <div class="di-macros">${item.amount}g · ${prot}g protein · ${fat}g fat</div>
+            <div class="di-macros">${item.amount}g${item.measureLabel ? ` <span class="di-measure">(${item.measureLabel})</span>` : ""} · ${prot}g protein · ${fat}g fat</div>
           </div>
           <span class="di-kcal">${cal} kcal</span>
           <button class="di-remove" onclick="DietPlanner.removeItem(${item.uid})" title="Remove">
@@ -305,20 +329,30 @@ const DietPlanner = (() => {
     if (!dietItems.length) {
       AppController.showToast("Diet chart is empty", "error"); return;
     }
-    const totals = calcTotals();
-    const ctx    = AppController.getPatientContext();
+    if (!HospitalAuth.canEdit()) {
+      AppController.showToast("Staff PIN required to save diet plans", "warning");
+      HospitalAuth.openPinModal(); return;
+    }
+
+    const totals    = calcTotals();
+    const ctx       = AppController.getPatientContext();
+    const hospCtx   = HospitalAuth.getRecordContext();
+    const patientId = makePatientId(ctx?.name || "Unnamed", hospCtx.hospitalId);
 
     const record = {
-      patientName:   ctx?.name || "Unnamed",
+      type:           "diet",
+      patientId,
+      patientName:    ctx?.name || "Unnamed",
       classification: classification || "Unknown",
       phase,
       targets,
       items: dietItems.map(i => ({
-        foodId:   i.foodId,
-        foodName: i.food.name,
-        amount:   i.amount,
-        meal:     i.meal,
-        calories: Math.round(i.food.per100g.calories * i.amount / 100)
+        foodId:        i.foodId,
+        foodName:      i.food.name,
+        amount:        i.amount,
+        meal:          i.meal,
+        measureLabel:  i.measureLabel || null,
+        calories:      Math.round(i.food.per100g.calories * i.amount / 100)
       })),
       totals: {
         calories: Math.round(totals.calories),
@@ -326,19 +360,47 @@ const DietPlanner = (() => {
         fat:      parseFloat(totals.fat.toFixed(1)),
         carbs:    parseFloat(totals.carbs.toFixed(1))
       },
-      date: new Date().toLocaleDateString("en-PK"),
-      timestamp: Date.now()
+      date:      new Date().toLocaleDateString("en-PK"),
+      timestamp: Date.now(),
+      ...hospCtx
     };
 
     try {
       const id = await dbSave("diets", record);
-      // Also push into the patient context for immediately showing
-      AppController.addSavedRecord({ id, ...record, type: "diet" });
+      AppController.addSavedRecord({ id, ...record });
       AppController.showToast("Diet plan saved successfully!", "success");
       AppController.updateDashboardStats();
     } catch (err) {
       AppController.showToast("Error saving diet: " + err.message, "error");
     }
+  }
+
+  /* ── Load Saved Diet (for editing from patient record) ──────── */
+
+  function loadSavedDiet(dietRecord) {
+    // Restore diet items from saved record
+    const FoodLibrary = FoodDB ? FoodDB.getAllFoods() : [];
+    dietItems = (dietRecord.items || []).map(i => {
+      let food = FoodLibrary.find(f => f.id === i.foodId);
+      if (!food) {
+        // Reconstruct minimal food object
+        food = {
+          id: i.foodId, name: i.foodName, emoji: "🍽",
+          category: "mixed", cost: "medium",
+          per100g: { calories: i.calories ? Math.round(i.calories * 100 / i.amount) : 0,
+                     protein: 0, fat: 0, carbs: 0 }
+        };
+      }
+      return { uid: Date.now() + Math.random(), foodId: i.foodId, food, amount: i.amount, meal: i.meal,
+               measureLabel: i.measureLabel || (HouseholdMeasures.getClosestLabel(food, i.amount)?.label || null) };
+    });
+    phase          = dietRecord.phase          || "Rehabilitation";
+    classification = dietRecord.classification || "";
+    targets        = dietRecord.targets        || targets;
+
+    updateSummary();
+    renderDietChart();
+    AppController.showToast("Diet plan loaded for editing", "info");
   }
 
   /* ── Export PDF ────────────────────────────────────────────── */
@@ -390,11 +452,13 @@ const DietPlanner = (() => {
     openAddModal,
     closeAddModal,
     setAmount,
+    selectMeasure,
     previewNutrition,
     confirmAdd,
     removeItem,
     clearAll,
     saveDiet,
+    loadSavedDiet,
     exportPDF,
     printUrdu,
     getDietData
