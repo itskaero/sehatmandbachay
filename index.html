@@ -1070,31 +1070,97 @@
       <button class="modal-close" onclick="if(HospitalAuth.isSetup())HospitalAuth.closeSetupModal()"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-      <div class="alert alert-info" style="margin-bottom:1rem;">
-        <i class="fas fa-info-circle"></i>
-        <div>Set a hospital name and PIN. Staff with the PIN can add/edit records. Attendants without PIN can view only.</div>
+
+      <!-- Tab buttons -->
+      <div class="tab-group" style="margin-bottom:1rem;">
+        <button class="tab-btn" id="hosp-tab-btn-saved" onclick="HospitalAuth.openSetupTab('saved')">
+          <i class="fas fa-list"></i> Saved Hospitals
+        </button>
+        <button class="tab-btn" id="hosp-tab-btn-manual" onclick="HospitalAuth.openSetupTab('manual')">
+          <i class="fas fa-pen"></i> Manual Entry
+        </button>
+        <button class="tab-btn" id="hosp-tab-btn-detect" onclick="HospitalAuth.openSetupTab('detect')">
+          <i class="fas fa-map-marker-alt"></i> Auto-detect
+        </button>
       </div>
-      <div class="form-group">
-        <label>Hospital / Clinic Name <span class="required-tag">*</span></label>
-        <input type="text" id="hosp-setup-name" class="form-input" placeholder="e.g. DHQ Hospital Lahore" />
+
+      <!-- ── Tab: Saved Hospitals ─────────────────────────── -->
+      <div class="tab-panel" id="hosp-tab-saved">
+        <div id="hosp-saved-list"></div>
+        <div class="empty-state" id="hosp-saved-empty" style="display:none;">
+          <i class="fas fa-hospital-alt fa-2x" style="color:var(--text-3);"></i>
+          <p style="margin-top:.5rem;color:var(--text-2);">No saved hospitals yet — use Manual Entry or Auto-detect to add one.</p>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Location / District <span class="optional-tag">optional</span></label>
-        <input type="text" id="hosp-setup-location" class="form-input" placeholder="e.g. Lahore, Punjab" />
-      </div>
-      <div class="form-row-2">
-        <div class="form-group">
-          <label>Staff PIN <span class="required-tag">*</span> (4+ digits)</label>
-          <input type="password" id="hosp-setup-pin" class="form-input" placeholder="••••" maxlength="12" />
+
+      <!-- ── Tab: Manual Entry ───────────────────────────── -->
+      <div class="tab-panel" id="hosp-tab-manual">
+        <div class="alert alert-info" style="margin-bottom:1rem;">
+          <i class="fas fa-info-circle"></i>
+          <div>Set a hospital name and PIN. Staff with the PIN can add/edit records. Attendants without PIN can view only.</div>
         </div>
         <div class="form-group">
-          <label>Confirm PIN</label>
-          <input type="password" id="hosp-setup-pin-confirm" class="form-input" placeholder="••••" maxlength="12" />
+          <label>Hospital / Clinic Name <span class="required-tag">*</span></label>
+          <input type="text" id="hosp-setup-name" class="form-input" placeholder="e.g. DHQ Hospital Lahore" />
+        </div>
+        <div class="form-group">
+          <label>Location / District <span class="optional-tag">optional</span></label>
+          <input type="text" id="hosp-setup-location" class="form-input" placeholder="e.g. Lahore, Punjab" />
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Staff PIN <span class="required-tag">*</span> (4+ digits)</label>
+            <input type="password" id="hosp-setup-pin" class="form-input" placeholder="••••" maxlength="12" />
+          </div>
+          <div class="form-group">
+            <label>Confirm PIN</label>
+            <input type="password" id="hosp-setup-pin-confirm" class="form-input" placeholder="••••" maxlength="12" />
+          </div>
         </div>
       </div>
+
+      <!-- ── Tab: Auto-detect Location ──────────────────── -->
+      <div class="tab-panel" id="hosp-tab-detect">
+        <div class="alert alert-info" style="margin-bottom:1rem;">
+          <i class="fas fa-location-arrow"></i>
+          <div>GPS locates you, then OpenStreetMap is searched for real hospitals nearby. Only actual healthcare facilities will appear.</div>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <button class="btn btn-outline" id="hosp-detect-btn" onclick="HospitalAuth.detectLocation()">
+            <i class="fas fa-map-marker-alt"></i> Detect My Location
+          </button>
+          <div id="hosp-detect-status" class="detect-status" style="margin-top:.5rem;"></div>
+        </div>
+
+        <!-- Nearby hospital cards rendered here by JS -->
+        <div id="hosp-nearby-list" style="margin-bottom:.75rem;"></div>
+
+        <div class="form-group">
+          <label>Hospital / Clinic Name <span class="required-tag">*</span></label>
+          <input type="text" id="hosp-detect-name" class="form-input" placeholder="Select from list above or type manually" />
+        </div>
+        <div class="form-group">
+          <label>Location / District <span class="optional-tag">auto-filled</span></label>
+          <input type="text" id="hosp-detect-location" class="form-input" placeholder="Detected automatically…" />
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Staff PIN <span class="required-tag">*</span> (4+ digits)</label>
+            <input type="password" id="hosp-detect-pin" class="form-input" placeholder="••••" maxlength="12" />
+          </div>
+          <div class="form-group">
+            <label>Confirm PIN</label>
+            <input type="password" id="hosp-detect-pin-confirm" class="form-input" placeholder="••••" maxlength="12" />
+          </div>
+        </div>
+      </div>
+
     </div>
     <div class="modal-footer">
-      <button class="btn btn-primary" onclick="HospitalAuth.submitSetup()"><i class="fas fa-save"></i> Save Hospital Setup</button>
+      <button class="btn btn-outline" onclick="if(HospitalAuth.isSetup())HospitalAuth.closeSetupModal()">Cancel</button>
+      <button class="btn btn-primary" id="hosp-setup-save-btn" onclick="HospitalAuth.submitSetup()">
+        <i class="fas fa-save"></i> Save Hospital Setup
+      </button>
     </div>
   </div>
 </div>

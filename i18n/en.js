@@ -217,6 +217,18 @@ I18n.register("en", {
   "form.staffPin":          "Staff PIN",
   "form.confirmPin":        "Confirm PIN",
   "btn.saveHospital":       "Save Hospital Setup",
+  "hosp.tab.saved":         "Saved Hospitals",
+  "hosp.tab.manual":        "Manual Entry",
+  "hosp.tab.detect":        "Auto-detect",
+  "hosp.saved.empty":       "No saved hospitals yet — use Manual Entry or Auto-detect to add one.",
+  "hosp.detect.info":       "Use your device's GPS to auto-fill the location, then enter the hospital name and PIN.",
+  "btn.detectLocation":     "Detect My Location",
+  "hosp.detect.detecting":  "Requesting location…",
+  "hosp.detect.noSupport":  "Geolocation is not supported by this browser.",
+  "hosp.detect.denied":     "Location access denied — allow it in browser settings.",
+  "hosp.detect.unavailable":"Location unavailable.",
+  "hosp.detect.timeout":    "Request timed out.",
+  "hosp.select.switched":   "Switched to hospital",
 
   /* ── PIN modal ───────────────────────────────────────────── */
   "modal.pin.instruction":  "Enter the hospital staff PIN to enable editing",

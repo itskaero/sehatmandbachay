@@ -1136,6 +1136,71 @@ body.sidebar-collapsed .main-content {
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
+/* ── Saved Hospitals list ─────────────────────────────────── */
+.saved-hosp-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  background: var(--bg);
+  transition: var(--transition);
+}
+.saved-hosp-item.current {
+  border-color: var(--primary);
+  background: var(--primary-light, rgba(26,127,90,.08));
+}
+.saved-hosp-info { flex: 1; min-width: 0; }
+.saved-hosp-name { font-weight: 600; font-size: .9rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.saved-hosp-loc  { font-size: .78rem; color: var(--text-2); margin-top: 2px; }
+.saved-hosp-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* ── Detect-location status ───────────────────────────────── */
+.detect-status {
+  font-size: .82rem;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+.detect-status.detecting { color: var(--text-2); }
+.detect-status.success   { color: #1a7f5a; background: rgba(26,127,90,.1); }
+.detect-status.error     { color: #c0392b; background: rgba(192,57,43,.08); }
+.detect-status.warning   { color: #b7730a; background: rgba(247,185,36,.12); }
+
+/* ── Nearby hospital cards (OSM results) ──────────────────── */
+.nearby-hosp-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  background: var(--bg);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.nearby-hosp-card:hover { border-color: var(--primary); background: var(--primary-light, rgba(26,127,90,.06)); }
+.nearby-hosp-card.selected { border-color: var(--primary); background: var(--primary-light, rgba(26,127,90,.1)); }
+.nearby-hosp-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(26,127,90,.12);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary);
+  font-size: .85rem;
+  flex-shrink: 0;
+}
+.nearby-hosp-info { flex: 1; min-width: 0; }
+.nearby-hosp-name { font-weight: 600; font-size: .88rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nearby-hosp-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.nearby-hosp-type { font-size: .73rem; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--primary); }
+.nearby-hosp-addr { font-size: .75rem; color: var(--text-2); }
+.nearby-check { flex-shrink: 0; font-size: .9rem; }
+
 .f75-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
 .formula-facts-grid {

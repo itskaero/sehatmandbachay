@@ -208,6 +208,18 @@ I18n.register("ur", {
   "form.staffPin":          "عملے کا پن",
   "form.confirmPin":        "پن کی تصدیق کریں",
   "btn.saveHospital":       "ہسپتال سیٹ اپ محفوظ کریں",
+  "hosp.tab.saved":         "محفوظ ہسپتال",
+  "hosp.tab.manual":        "دستی اندراج",
+  "hosp.tab.detect":        "خودکار پتہ لگائیں",
+  "hosp.saved.empty":       "کوئی محفوظ ہسپتال نہیں — دستی اندراج یا خودکار پتہ لگانے کا استعمال کریں۔",
+  "hosp.detect.info":       "اپنے آلے کا GPS استعمال کریں تاکہ جگہ خودبخود پُر ہو جائے، پھر ہسپتال کا نام اور پن درج کریں۔",
+  "btn.detectLocation":     "میری جگہ معلوم کریں",
+  "hosp.detect.detecting":  "جگہ معلوم کی جا رہی ہے…",
+  "hosp.detect.noSupport":  "یہ براؤزر جیولوکیشن سپورٹ نہیں کرتا۔",
+  "hosp.detect.denied":     "جگہ تک رسائی سے انکار — براؤزر ترتیبات میں اجازت دیں۔",
+  "hosp.detect.unavailable":"جگہ دستیاب نہیں۔",
+  "hosp.detect.timeout":    "درخواست کا وقت ختم ہو گیا۔",
+  "hosp.select.switched":   "ہسپتال تبدیل ہو گیا",
 
   /* ── PIN modal ───────────────────────────────────────────── */
   "modal.pin.instruction":  "ترمیم کو فعال کرنے کے لیے ہسپتال عملے کا پن داخل کریں",
